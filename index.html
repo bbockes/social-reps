@@ -412,7 +412,28 @@
       letter-spacing: 0.04em;
       text-transform: uppercase;
       color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .line-hint {
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--muted);
       margin-bottom: 8px;
+    }
+
+    .script-options {
+      list-style: disc;
+      padding-left: 1.15em;
+      margin: 0;
+      font-size: calc(1.05rem * 0.95);
+      line-height: 1.5;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .script-options li + li {
+      margin-top: 0.45em;
     }
 
     .line-text {
@@ -425,12 +446,6 @@
     .script-line-second {
       display: block;
       margin-top: 0.45em;
-    }
-
-    .line-text em,
-    .pick-opener em,
-    .pick-followup em {
-      font-style: italic;
     }
 
     .arrow-row {
@@ -657,7 +672,7 @@
     <!-- Home -->
     <div id="home-screen">
       <div class="home-hero">
-        <h1>Social reps.</h1>
+        <h1>En route</h1>
         <p>Log interactions as you go about your day.</p>
       </div>
 
@@ -741,77 +756,246 @@
         id: "safeway",
         name: "Safeway",
         stops: [
-          { label: "Dog walker", opener: "What's his name? He looks like a [name].", followup: "How old is he? He's still got that puppy energy." },
-          { label: "Person on the street", opener: "Is the Safeway just down here? Sorry, I'm new here.", followup: "Nice store? — what's better?" },
-          { label: "Person exiting the store", opener: "Busy in there?", followup: "Good to know — I always pick the wrong time to come." },
-          { label: "Person stocking shelves", opener: "Hey, you guys carry [thing]? I can never find it.", followup: "Do you like working here? Seems like a fun gig." },
-          { label: "Person at the shelf", opener: "Is that any good? I've been curious about that one.", followup: "You seem like you know what's good — do you come here a lot?" },
-          { label: "Person by the fruit", opener: "Honest question — do you know which is in season?", followup: "You clearly know more about this than I do. What else should I be getting?" },
-          { label: "Store clerk", opener: "Good day so far?", followup: "Bet you're ready for lunch." },
-          { label: "Person coming in as you walk out", opener: "Good luck in there.", followup: "Just saying — it's a lot in there today." },
-          { label: "Person walking alongside you", opener: "Long day?", followup: "Nice out though, right?" }
+          {
+            label: "Dog walker",
+            openers: ["What's his name?", "What a handsome dog.", "Cute dog — yours?"],
+            followups: ["How old is he?", "What breed is he?", "Is he friendly with other dogs?"]
+          },
+          {
+            label: "Person on the street",
+            openers: [
+              "Is there a grocery store down the way?",
+              "Do you know a good coffee shop nearby?",
+              "Hey — am I headed toward Clarendon?"
+            ],
+            followups: [
+              "You from around here?",
+              "Thanks — that's helpful.",
+              "Appreciate it."
+            ]
+          },
+          {
+            label: "Person exiting the store",
+            openers: ["Busy in there?", "How long was the line?", "Worth the trip?"],
+            followups: ["How was checkout?", "Was the line worth it?", "Would you come back at this hour?"]
+          },
+          {
+            label: "Person stocking shelves",
+            openers: ["Hey, you guys carry [thing]?", "Which aisle is [thing] in?", "Where do you keep [thing]?"],
+            followups: [
+              "Do you like working here?",
+              "How long have you worked here?",
+              "You always work this section?"
+            ]
+          },
+          {
+            label: "Person at the shelf",
+            openers: ["Is that any good?", "What's good on this aisle?", "Have you tried this one before?"],
+            followups: ["Which would you pick?", "What else is good on this aisle?", "Do you come here a lot?"]
+          },
+          {
+            label: "Person by the fruit",
+            openers: ["Which of these is in season?", "Are these ripe?", "What would you grab here?"],
+            followups: ["What else should I be getting?", "How do you tell if they're ripe?", "Do you shop here often?"]
+          },
+          {
+            label: "Store clerk",
+            openers: ["Good day so far?", "How's it going?", "Slow or busy today?"],
+            followups: ["How busy has it been?", "Got plans after your shift?", "What's the strangest thing you've seen today?"]
+          },
+          {
+            label: "Person coming in as you walk out",
+            openers: ["Good luck in there.", "How busy is it in there?", "Worth going in right now?"],
+            followups: ["How long was the line?", "Was checkout bad?", "Still worth going in?"]
+          },
+          {
+            label: "Person walking alongside you",
+            openers: ["Long day?", "Nice out today.", "Headed somewhere fun?"],
+            followups: ["You walk this route a lot?", "Work around here?", "Anywhere good to eat nearby?"]
+          }
         ]
       },
       {
         id: "tj",
         name: "Trader Joe's",
         stops: [
-          { label: "Person entering the store", opener: "Think it'll be busy right now?", followup: "Good to know — I always pick the wrong time to come." },
-          { label: "Free sample person", opener: "Be honest — is this actually good or are you just saying that?", followup: "What's the best thing you've sampled working here?" },
-          { label: "Person stocking shelves", opener: "Hey, you guys carry [thing]? I can never find it.", followup: "Do you like working here? Seems like a solid gig." },
-          { label: "Person at the shelf", opener: "Is that any good? I've been curious about that one.", followup: "Do you know what else is good?" },
-          { label: "Person by the fruit", opener: "Honest question — do you know which one is in season?", followup: "You clearly know more about this than I do. What else should I be getting?" },
-          { label: "Person in the aisle", opener: "Have you tried this one? I keep going back and forth.", followup: "You just made that decision a lot easier." },
-          { label: "Person in line before checkout", opener: "Had any of these? Do you know which is best?", followup: "Yeah that's what I thought." },
-          { label: "Store clerk at checkout", opener: "Good day so far?", followup: "Bet you're ready for lunch." },
-          { label: "Person in the elevator leaving", opener: "Find anything good?", followup: "I went in for two things and spent $50." }
+          {
+            label: "Person entering the store",
+            openers: ["Think it'll be busy right now?", "How's the line looking?", "Worth going in right now?"],
+            followups: ["How long was the line?", "Was checkout bad?", "Still worth it?"]
+          },
+          {
+            label: "Free sample person",
+            openers: ["Is this actually good?", "What's in this one?", "You have to eat this all day?"],
+            followups: ["What's the best thing you've sampled?", "What should I buy?", "Do you shop here too?"]
+          },
+          {
+            label: "Person stocking shelves",
+            openers: ["Hey, you guys carry [thing]?", "Which aisle is [thing] in?", "Where do you keep [thing]?"],
+            followups: ["Do you like working here?", "How long have you worked here?", "You always work this section?"]
+          },
+          {
+            label: "Person at the shelf",
+            openers: ["Is that any good?", "What's good on this aisle?", "Have you tried this one before?"],
+            followups: ["Which would you pick?", "What else is good on this aisle?", "Do you come here a lot?"]
+          },
+          {
+            label: "Person by the fruit",
+            openers: ["Which of these is in season?", "Are these ripe?", "What would you grab here?"],
+            followups: ["What else should I be getting?", "How do you tell if they're ripe?", "Do you shop here often?"]
+          },
+          {
+            label: "Person in the aisle",
+            openers: ["Have you tried this one?", "Which of these is better?", "What would you grab here?"],
+            followups: ["Which would you pick?", "What else is good in this aisle?", "Do you come here often?"]
+          },
+          {
+            label: "Person in line before checkout",
+            openers: ["Had any of these?", "Which looks best to you?", "Know which is worth it?"],
+            followups: ["Which would you pick?", "What else is good?", "Do you get this often?"]
+          },
+          {
+            label: "Store clerk at checkout",
+            openers: ["Good day so far?", "How's it going?", "Slow or busy today?"],
+            followups: ["How busy has it been?", "Got plans after your shift?", "What's the strangest thing you've seen today?"]
+          },
+          {
+            label: "Person in the elevator leaving",
+            openers: ["Find anything good?", "Good haul?", "Get everything you needed?"],
+            followups: ["How long was the line?", "Get everything you needed?", "What did you end up getting?"]
+          }
         ]
       },
       {
         id: "clarendon",
-        name: "Clarendon and back",
+        name: "Clarendon",
         stops: [
-          { label: "Metro question", opener: "Is the metro right up here? Sorry, I'm new.", followup: "Nice area — have you been here long?" },
-          { label: "Dog walker", opener: "What's his name?", followup: "He looks like a [name]." },
-          { label: "Person walking by", opener: "Hey, is there a good coffee spot around here?", followup: "Perfect, thank you." },
-          { label: "Person at a stoplight", opener: "Long day?", followup: "Nice out though, right?" },
-          { label: "Person at a bus stop", opener: "Just curious — where does this bus go? Sorry, I'm new in town.", followup: "Nice — you from around here?" },
           {
-            label: "Pick one stop",
-            picks: [
-              { place: "B&N", opener: "Have you read any of these?", followup: "Anything worth getting?" },
-              { place: "Crate & Barrel", opener: "Do you cook?", followup: "What do you actually use?" },
-              { place: "Cafe (in line)", opener: "Been here before?", followup: "What's good?" },
-              { place: "Cafe (waiting for drink)", opener: "What did you get?", followup: "Good call — I always order wrong." },
-              { place: "Cafe (sitting, reading)", opener: "Good book?", followup: "Worth picking up?" }
-            ]
+            label: "Metro question",
+            openers: ["Is the metro right up here?", "Which line is this?", "Does this go toward DC?"],
+            followups: ["You from around here?", "How long have you lived here?", "Thanks — appreciate it."]
           },
-          { label: "Person sitting (walking back)", opener: "You know if there's a good coffee spot nearby?", followup: "Nice — you from around here?" },
-          { label: "Person walking (walking back)", opener: "Long day?", followup: "Nice out though, right?" }
+          {
+            label: "Dog walker",
+            openers: ["What's his name?", "What a handsome dog.", "Cute dog — yours?"],
+            followups: ["How old is he?", "What breed is he?", "Is he friendly with other dogs?"]
+          },
+          {
+            label: "Person walking by",
+            openers: ["Is there a good coffee spot around here?", "Know a good place to eat nearby?", "Any good spots around here?"],
+            followups: ["You from around here?", "Thanks — appreciate it.", "Which would you pick?"]
+          },
+          {
+            label: "Person at a stoplight",
+            openers: ["Long day?", "Headed somewhere good?", "Nice day out."],
+            followups: ["What do you do around here?", "You from around here?", "Enjoy the rest of your day."]
+          },
+          {
+            label: "Person at a bus stop",
+            openers: ["Where does this bus go?", "Does this bus go to Clarendon?", "How often does it come?"],
+            followups: ["You from around here?", "You ride this often?", "Thanks — appreciate it."]
+          },
+          {
+            label: "Person in B&N",
+            openers: ["Have you read any of these?", "Anything good in here?", "Anything you'd recommend?"],
+            followups: ["Anything worth getting?", "What's your favorite section?", "Do you come here a lot?"]
+          },
+          {
+            label: "Person in Crate & Barrel",
+            openers: ["Do you cook much?", "Shopping for yourself or a gift?", "See anything you like?"],
+            followups: ["What do you actually use?", "What's worth the money here?", "Do you come here often?"]
+          },
+          {
+            label: "Person in cafe (in line)",
+            openers: ["Been here before?", "What's good here?", "Is the line always this long?"],
+            followups: ["What do you usually get?", "What's worth ordering?", "Do you come here a lot?"]
+          },
+          {
+            label: "Person at cafe (waiting for drink)",
+            openers: ["What did you get?", "What'd you order?", "First time trying this place?"],
+            followups: ["Is it good?", "What else is good here?", "Do you come here often?"]
+          },
+          {
+            label: "Person at cafe (reading)",
+            openers: ["Good book?", "What are you reading?", "Is that worth picking up?"],
+            followups: ["Would you recommend it?", "What else have you liked lately?", "Do you come here to read often?"]
+          },
+          {
+            label: "Person sitting (walking back)",
+            openers: ["Know a good coffee spot nearby?", "You from around here?", "Nice spot to sit."],
+            followups: ["You from around here?", "Thanks — helpful.", "Come here often?"]
+          },
+          {
+            label: "Person walking (walking back)",
+            openers: ["Long day?", "Nice out today.", "Headed somewhere fun?"],
+            followups: ["You walk this route a lot?", "Work around here?", "Anywhere good to eat nearby?"]
+          }
         ]
       },
       {
         id: "georgetown",
-        name: "Georgetown and back",
+        name: "Georgetown",
         stops: [
-          { label: "Metro", opener: "Is the metro right up here? Sorry, I'm new.", followup: "Nice area — you been here long?" },
-          { label: "Dog walker", opener: "What's his name?", followup: "He looks like a [name]." },
-          { label: "Person walking by", opener: "Hey, is there a good coffee spot around here?", followup: "Perfect, thank you." },
-          { label: "Person at a stoplight", opener: "Long day?", followup: "Nice out though, right?" },
-          { label: "Barista", opener: "What's your most popular thing?", followup: "Okay — and what would you actually get?" },
-          { label: "People walking past", opener: "Nice day for it.", followup: "You know this area well?" },
           {
-            label: "Pick one stop",
-            picks: [
-              { place: "Furniture store", opener: "Do you actually help people design their place or just sell furniture?", followup: "That's cool — what's the most common thing people get wrong?" },
-              { place: "Clothing store", opener: "Is this popular? You think I'd look good in this?", followup: "That's what I needed to hear." },
-              { place: "Bookstore", opener: "Have you read any of these?", followup: "Anything worth getting?" },
-              { place: "Ice cream / cupcake shop", opener: "What did you get — is it good?", followup: "Okay now I have to go in." }
-            ]
+            label: "Dog walker",
+            openers: ["What's his name?", "What a handsome dog.", "Cute dog — yours?"],
+            followups: ["How old is he?", "What breed is he?", "Is he friendly with other dogs?"]
           },
-          { label: "Georgetown waterfront", opener: "Nice view huh? You come here a lot?", followup: "Nice — I'm still finding my way around." },
-          { label: "Person outside store", opener: "Hey, are you from here? Sorry, I'm new...do you know of a good place to eat around here?", followup: "thanks, I appreciate it." },
-          { label: "Person walking back", opener: "Long day?", followup: "Nice out though, right?" }
+          {
+            label: "Person walking by",
+            openers: ["I like that [thing about them].", "Know a good place to eat nearby?", "Any good spots around here?"],
+            followups: ["You from around here?", "Thanks — appreciate it.", "Which would you pick?"]
+          },
+          {
+            label: "Person at a stoplight",
+            openers: ["Long day?", "Headed somewhere good?", "Nice day out."],
+            followups: ["What do you do around here?", "You from around here?", "Enjoy the rest of your day."]
+          },
+          {
+            label: "Barista",
+            openers: ["What's the most popular drink?", "What would you recommend?", "What's actually worth getting?"],
+            followups: ["What do you usually get?", "What's underrated here?", "Do you drink coffee all day?"]
+          },
+          {
+            label: "People walking past",
+            openers: ["Nice day for a walk.", "You headed to the waterfront?", "Is it always this busy here?"],
+            followups: ["You know this area well?", "You from around here?", "Anywhere good to eat nearby?"]
+          },
+          {
+            label: "Person in furniture store",
+            openers: ["Do you work here?", "Shopping for a specific room?", "See anything you like?"],
+            followups: ["What's worth buying here?", "What do people get wrong most often?", "Do you come here often?"]
+          },
+          {
+            label: "Person in clothing store",
+            openers: ["Is this popular right now?", "Think this works?", "What do people usually get from here?"],
+            followups: ["What else is good here?", "Do you shop here a lot?", "Would you get this?"]
+          },
+          {
+            label: "Person in bookstore",
+            openers: ["Have you read any of these?", "Anything good in here?", "Anything you'd recommend?"],
+            followups: ["Anything worth getting?", "What's your favorite section?", "Do you come here a lot?"]
+          },
+          {
+            label: "Person at ice cream shop",
+            openers: ["What did you get?", "What's the best thing here?", "Worth the wait?"],
+            followups: ["Is it good?", "What else should I try?", "Do you come here often?"]
+          },
+          {
+            label: "Georgetown waterfront",
+            openers: ["Nice view.", "You come here a lot?", "Best time to come down here?"],
+            followups: ["You from around here?", "Anywhere good to eat nearby?", "Still finding my way around — any tips?"]
+          },
+          {
+            label: "Person outside store",
+            openers: ["Know a good place to eat around here?", "Any good spots around here?", "Is this area mostly tourists?"],
+            followups: ["You from around here?", "Thanks — appreciate it.", "Which would you pick?"]
+          },
+          {
+            label: "Person walking back",
+            openers: ["Long day?", "Nice out today.", "Headed somewhere fun?"],
+            followups: ["You walk this route a lot?", "Work around here?", "Anywhere good to eat nearby?"]
+          }
         ]
       }
     ];
@@ -1063,9 +1247,7 @@
       route.stops.forEach((stop, i) => {
         const card = document.createElement("div");
         card.className = "stop-card" + (isRepDone(routeIdx, i) ? " done" : "");
-        const preview = stop.picks
-          ? "Choose one of " + stop.picks.length + " options"
-          : openerFirstLine(stop.opener);
+        const preview = stopPreviewText(stop);
         card.innerHTML =
           '<div class="stop-check"><span class="stop-num-inner">' +
           (i + 1) +
@@ -1091,20 +1273,13 @@
       document.getElementById("detail-back-label").textContent = route.name;
 
       const body = document.getElementById("detail-body");
-      if (stop.picks) {
-        let html = '<div class="pick-section"><div class="pick-label">Pick one</div>';
-        stop.picks.forEach((p) => {
-          html +=
-            '<div class="pick-card"><div class="pick-place">' +
-            escapeHtml(p.place) +
-            '</div><div class="pick-opener">' +
-            formatScriptTwoLines(p.opener) +
-            '</div><div class="pick-followup">' +
-            formatScriptTwoLines(p.followup, "→ ") +
-            "</div></div>";
-        });
-        html += "</div>";
-        body.innerHTML = html;
+      if (stop.openers) {
+        body.innerHTML =
+          '<div class="line-card"><div class="line-label">Openers</div><div class="line-hint">Pick any — mix with any follow-up</div>' +
+          formatScriptOptions(stop.openers) +
+          '</div><div class="arrow-row">↓ then</div><div class="line-card"><div class="line-label">Follow-ups</div><div class="line-hint">Pick any</div>' +
+          formatScriptOptions(stop.followups) +
+          "</div>";
       } else {
         body.innerHTML =
           '<div class="line-card"><div class="line-label">Opener</div><div class="line-text">' +
@@ -1256,10 +1431,18 @@
       return line;
     }
 
-    function wrapQuestionItalic(text) {
-      const escaped = escapeHtml(text);
-      if (/\?$/.test(text.trim())) return "<em>" + escaped + "</em>";
-      return escaped;
+    function stopPreviewText(stop) {
+      if (stop.openers?.length) return stop.openers[0];
+      return openerFirstLine(stop.opener);
+    }
+
+    function formatScriptOptions(items) {
+      if (!items?.length) return "";
+      return (
+        '<ul class="script-options">' +
+        items.map((item) => "<li>" + escapeHtml(item) + "</li>").join("") +
+        "</ul>"
+      );
     }
 
     function formatScriptTwoLines(text, lead) {
@@ -1267,15 +1450,15 @@
       const trimmed = text.trim();
       const end = trimmed.search(/[.?!]/);
       const prefix = lead || "";
-      if (end === -1) return prefix + wrapQuestionItalic(trimmed);
+      if (end === -1) return prefix + escapeHtml(trimmed);
       const first = trimmed.slice(0, end + 1).trim();
       let rest = trimmed.slice(end + 1).trim().replace(/^[—–-]\s*/, "");
-      if (!rest) return prefix + wrapQuestionItalic(first);
+      if (!rest) return prefix + escapeHtml(first);
       return (
         prefix +
-        wrapQuestionItalic(first) +
+        escapeHtml(first) +
         '<span class="script-line-second">— ' +
-        wrapQuestionItalic(rest) +
+        escapeHtml(rest) +
         "</span>"
       );
     }
