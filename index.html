@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -317,6 +318,10 @@
       gap: 8px;
     }
 
+    #stops-screen .stop-list {
+      padding-bottom: 7.5rem;
+    }
+
     .stop-card {
       background: var(--card);
       border-radius: var(--radius-lg);
@@ -390,6 +395,159 @@
       margin-left: auto;
       color: #c7c7cc;
       font-size: 1.1rem;
+    }
+
+    .overflow-btn {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      background: var(--card);
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 1.25rem;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 0 2px 0;
+      box-shadow: var(--shadow);
+      transition: transform 0.15s ease, color 0.15s;
+    }
+    .overflow-btn:active { transform: scale(0.92); color: var(--text); }
+    .overflow-btn.hidden { display: none; }
+
+    .stops-footer {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 430px;
+      padding: 1rem 1.25rem calc(1rem + var(--safe-bottom));
+      background: linear-gradient(transparent, var(--bg) 35%);
+    }
+
+    .start-route-btn {
+      width: 100%;
+      min-height: 52px;
+      border: none;
+      border-radius: 999px;
+      padding: 0 1.25rem;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      cursor: pointer;
+      background: var(--green);
+      color: #fff;
+      border: 2px solid var(--green);
+      transition: transform 0.15s ease;
+    }
+    .start-route-btn:active { transform: scale(0.97); }
+    .start-route-btn:disabled {
+      opacity: 0.45;
+      cursor: default;
+      transform: none;
+    }
+
+    .action-sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s ease, visibility 0.25s;
+      padding: 0 0.5rem calc(0.5rem + var(--safe-bottom));
+    }
+    .action-sheet-backdrop.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    .action-sheet-backdrop.hidden { display: none; }
+    .action-sheet-backdrop:not(.hidden) { display: flex; }
+
+    .action-sheet-wrap {
+      width: 100%;
+      max-width: 430px;
+      transform: translateY(110%);
+      transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    .action-sheet-backdrop.show .action-sheet-wrap {
+      transform: translateY(0);
+    }
+
+    .action-sheet-panel {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .action-sheet-panel-cancel {
+      margin-bottom: 0;
+    }
+
+    .action-sheet-header {
+      padding: 1rem 1.25rem 0.85rem;
+      text-align: center;
+      border-bottom: 0.5px solid rgba(60, 60, 67, 0.18);
+    }
+    .action-sheet-header.hidden { display: none; }
+
+    .action-sheet-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: -0.01em;
+    }
+
+    .action-sheet-message {
+      margin-top: 0.35rem;
+      font-size: 0.82rem;
+      font-weight: 400;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .action-sheet-item {
+      display: block;
+      width: 100%;
+      border: none;
+      background: none;
+      font-family: inherit;
+      font-size: 1.05rem;
+      font-weight: 400;
+      color: #007aff;
+      text-align: center;
+      padding: 1rem 1.25rem;
+      cursor: pointer;
+      border-bottom: 0.5px solid rgba(60, 60, 67, 0.18);
+    }
+    .action-sheet-item:last-child { border-bottom: none; }
+    .action-sheet-item:active { background: rgba(0, 0, 0, 0.05); }
+    .action-sheet-item.hidden { display: none; }
+    .action-sheet-item.destructive {
+      color: #ff3b30;
+      font-weight: 600;
+    }
+    .action-sheet-item.cancel {
+      font-weight: 600;
+    }
+
+    /* Legacy single-panel sheet (stops menu) */
+    .action-sheet {
+      width: 100%;
+      max-width: 430px;
     }
 
     /* —— Detail —— */
@@ -661,6 +819,516 @@
       overflow: hidden;
       clip: rect(0, 0, 0, 0);
     }
+
+    /* —— My Stops row (home) —— */
+    .my-stops-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 1.15rem;
+      background: var(--card);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      margin-bottom: 0.75rem;
+      transition: transform 0.15s ease;
+    }
+    .my-stops-row:active { transform: scale(0.98); }
+    .my-stops-row-left { display: flex; align-items: center; gap: 10px; }
+    .my-stops-icon { font-size: 1.1rem; }
+    .my-stops-label { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+    .my-stops-count { font-size: 0.8rem; color: var(--muted); font-weight: 500; }
+    .my-stops-arrow { font-size: 1.25rem; color: var(--accent); font-weight: 400; }
+
+    /* —— New route button —— */
+    .new-route-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border: 2px dashed var(--track);
+      border-radius: var(--radius-xl);
+      background: transparent;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      margin-top: 4px;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .new-route-btn:active { border-color: var(--accent); color: var(--accent); }
+
+    /* —— Route edit button inside card —— */
+    .route-edit-btn {
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      padding: 0.4rem 0.5rem;
+      color: var(--muted);
+      font-size: 1rem;
+      cursor: pointer;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+    .route-edit-btn:active { color: var(--accent); }
+
+    /* —— New item button (in screen headers) —— */
+    .new-item-btn {
+      flex-shrink: 0;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.45rem 0.8rem;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .new-item-btn:active { opacity: 0.8; }
+
+    /* —— iOS-style route editor —— */
+    #route-editor-screen {
+      background: #f2f2f7;
+      min-height: 100dvh;
+    }
+
+    .ios-nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0.65rem 1rem;
+      background: rgba(242, 242, 247, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 0.5px solid rgba(60, 60, 67, 0.18);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .ios-nav-btn {
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 1.05rem;
+      color: var(--accent);
+      font-weight: 400;
+      cursor: pointer;
+      padding: 0.35rem 0;
+      min-width: 72px;
+      text-align: left;
+    }
+    .ios-nav-btn-primary {
+      font-weight: 600;
+      text-align: right;
+      color: var(--accent);
+    }
+    .ios-nav-btn:active { opacity: 0.55; }
+
+    .ios-nav-title {
+      flex: 1;
+      text-align: center;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .ios-form-body {
+      padding: 1.25rem 1rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.35rem;
+    }
+
+    .ios-section-label {
+      font-size: 0.78rem;
+      font-weight: 400;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      color: #6d6d72;
+      margin: 0 0 0.45rem 1rem;
+    }
+
+    .ios-group {
+      background: var(--card);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .ios-cell-input {
+      width: 100%;
+      border: none;
+      padding: 0.85rem 1rem;
+      font-family: inherit;
+      font-size: 1.05rem;
+      font-weight: 400;
+      color: var(--text);
+      background: transparent;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .ios-cell-input::placeholder { color: #c7c7cc; }
+
+    .ios-footnote {
+      margin: 0.45rem 1rem 0;
+      font-size: 0.78rem;
+      color: #6d6d72;
+      line-height: 1.4;
+    }
+
+    .ios-empty-hint {
+      padding: 1.1rem 1rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .ios-destructive-row {
+      width: 100%;
+      border: none;
+      background: var(--card);
+      color: #ff3b30;
+      font-family: inherit;
+      font-size: 1.05rem;
+      font-weight: 400;
+      padding: 0.95rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      border-radius: 12px;
+    }
+    .ios-destructive-row:active { background: #fafafa; }
+
+    #route-editor-screen .tab-bar {
+      margin: 0.65rem 0.75rem 0;
+      background: rgba(118, 118, 128, 0.12);
+    }
+
+    #route-editor-screen .route-stops-sortable { padding: 0; min-height: 0; }
+
+    #route-editor-screen .route-stop-row {
+      padding: 0.75rem 1rem;
+      border-bottom: 0.5px solid rgba(60, 60, 67, 0.18);
+      background: transparent;
+    }
+
+    #route-editor-screen .stop-picker {
+      padding: 0;
+    }
+
+    #route-editor-screen .stop-picker-item {
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      border-bottom: 0.5px solid rgba(60, 60, 67, 0.18);
+      padding: 0.75rem 1rem;
+    }
+    #route-editor-screen .stop-picker-item:last-child { border-bottom: none; }
+    #route-editor-screen .stop-picker-item:active { background: rgba(0, 0, 0, 0.04); }
+
+    /* —— Editor screens (stop editor, route editor) —— */
+    .editor-body {
+      padding: 0.75rem 1rem 7.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+    }
+
+    .editor-field {}
+
+    .editor-label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.45rem;
+      padding-left: 0.1rem;
+    }
+
+    .editor-input {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--card);
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      box-shadow: var(--shadow);
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .editor-input:focus { border-color: var(--accent); }
+
+    .editor-section {
+      background: var(--card);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .editor-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem 0.6rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .editor-section-title {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .add-line-btn {
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--accent);
+      cursor: pointer;
+      padding: 0.2rem 0;
+    }
+
+    .line-inputs-list { padding: 0.35rem 0; }
+
+    .line-input-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0.3rem 1rem;
+    }
+
+    .line-input {
+      flex: 1;
+      border: none;
+      border-bottom: 1px solid var(--track);
+      padding: 0.45rem 0.1rem;
+      font-family: inherit;
+      font-size: 0.93rem;
+      font-weight: 500;
+      color: var(--text);
+      background: transparent;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .line-input:focus { border-bottom-color: var(--accent); }
+    .line-input::placeholder { color: var(--track); }
+
+    .line-remove-btn {
+      background: none;
+      border: none;
+      color: #c7c7cc;
+      font-size: 1.25rem;
+      cursor: pointer;
+      padding: 0.15rem 0.25rem;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+    .line-remove-btn:active { color: var(--accent); }
+
+    /* —— Route editor stops list —— */
+    .route-stops-sortable { padding: 0.35rem 0; min-height: 4px; }
+
+    .route-stop-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0.65rem 1rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--card);
+    }
+    .route-stop-row:last-child { border-bottom: none; }
+
+    .drag-handle {
+      color: #c7c7cc;
+      font-size: 0.95rem;
+      cursor: grab;
+      padding: 0 0.1rem;
+      user-select: none;
+      touch-action: none;
+      letter-spacing: -1px;
+    }
+    .drag-handle:active { cursor: grabbing; }
+
+    .route-stop-label {
+      flex: 1;
+      font-size: 0.93rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .route-stop-preview {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    /* —— Stop picker —— */
+    .stop-picker {
+      padding: 0.75rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .stop-picker-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 0.85rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .stop-picker-item:active { background: var(--accent-soft); }
+    .stop-picker-item.already-added { opacity: 0.38; pointer-events: none; }
+
+    .stop-picker-item-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .stop-picker-item-preview {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+    .stop-picker-add-icon {
+      font-size: 1.35rem;
+      font-weight: 300;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    /* —— Editor footer (save button) —— */
+    .editor-footer {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 430px;
+      padding: 1rem 1.25rem calc(1rem + var(--safe-bottom));
+      background: linear-gradient(transparent, var(--bg) 35%);
+    }
+
+    .save-btn {
+      width: 100%;
+      min-height: 52px;
+      border: none;
+      border-radius: 999px;
+      padding: 0 1.25rem;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      transition: transform 0.15s ease, opacity 0.2s;
+    }
+    .save-btn:active { transform: scale(0.97); }
+
+    .editor-delete-btn {
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #c0392b;
+      cursor: pointer;
+      padding: 0.25rem 0;
+    }
+
+    .danger-btn {
+      flex-shrink: 0;
+      padding: 0.45rem 0.85rem;
+      border-radius: 8px;
+      border: none;
+      background: #c0392b;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .danger-btn:active { opacity: 0.75; }
+
+    /* —— Empty states —— */
+    .list-empty {
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+      line-height: 1.6;
+    }
+    .list-empty p { margin-bottom: 0.25rem; }
+
+    /* —— Library tab bar —— */
+    .tab-bar {
+      display: flex;
+      background: var(--track);
+      border-radius: 10px;
+      padding: 3px;
+      margin: 0 1rem 1rem;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 0.48rem 0.5rem;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+      line-height: 1.2;
+    }
+
+    .tab-btn.active {
+      background: var(--card);
+      color: var(--text);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* —— Library stop card edit indicator —— */
+    .stop-card-edit-dot {
+      width: 30px;
+      height: 30px;
+      min-width: 30px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      border: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      color: var(--accent);
+    }
   </style>
 </head>
 <body>
@@ -677,16 +1345,24 @@
       </div>
 
       <div class="week-stat-card">
-        <div class="week-stat-label">Routes this week</div>
+        <div class="week-stat-label">Routes completed today</div>
         <div class="week-stat-row">
           <span class="week-stat-num" id="week-route-count">0</span>
-          <span class="week-stat-of">of 4</span>
         </div>
-        <div class="week-dots" id="week-dots"></div>
       </div>
 
       <div class="route-section">
         <div class="section-label">Your routes</div>
+        <div class="my-stops-row" id="my-stops-row">
+          <div class="my-stops-row-left">
+            <span class="my-stops-icon">🗂</span>
+            <div>
+              <div class="my-stops-label">My Reps</div>
+              <div class="my-stops-count" id="my-stops-count">0 reps</div>
+            </div>
+          </div>
+          <span class="my-stops-arrow">›</span>
+        </div>
         <div id="route-list"></div>
       </div>
     </div>
@@ -694,11 +1370,11 @@
     <!-- Stops -->
     <div id="stops-screen" class="hidden">
       <div class="screen-header">
-        <button type="button" class="back-btn" id="stops-back">← Routes</button>
-        <div class="stops-header-row">
-          <div class="screen-title" id="stops-title"></div>
-          <button type="button" class="reset-today-btn hidden" id="reset-today-btn">Reset today</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <button type="button" class="back-btn" id="stops-back" style="margin-bottom:0;">← Routes</button>
+          <button type="button" class="overflow-btn hidden" id="stops-menu-btn" aria-label="Route options">⋯</button>
         </div>
+        <div class="screen-title" id="stops-title" style="margin-top:0.75rem;"></div>
       </div>
 
       <div id="route-complete-banner" class="route-complete-banner hidden">Route complete — counted for this week.</div>
@@ -716,6 +1392,37 @@
       </div>
 
       <div class="stop-list" id="stop-list"></div>
+
+      <div class="stops-footer">
+        <button type="button" class="start-route-btn" id="start-route-btn">Start route</button>
+      </div>
+    </div>
+
+    <div id="stops-action-sheet" class="action-sheet-backdrop hidden" aria-hidden="true">
+      <div class="action-sheet-wrap">
+        <div class="action-sheet-panel">
+          <button type="button" class="action-sheet-item hidden" id="menu-edit-route">Edit Route</button>
+          <button type="button" class="action-sheet-item destructive hidden" id="menu-reset-today">Reset Today's Progress</button>
+        </div>
+        <div class="action-sheet-panel action-sheet-panel-cancel">
+          <button type="button" class="action-sheet-item cancel" id="menu-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="confirm-action-sheet" class="action-sheet-backdrop hidden" aria-hidden="true">
+      <div class="action-sheet-wrap">
+        <div class="action-sheet-panel">
+          <div class="action-sheet-header" id="confirm-sheet-header">
+            <div class="action-sheet-title" id="confirm-sheet-title"></div>
+            <div class="action-sheet-message" id="confirm-sheet-message"></div>
+          </div>
+          <button type="button" class="action-sheet-item destructive" id="confirm-sheet-confirm">Delete</button>
+        </div>
+        <div class="action-sheet-panel action-sheet-panel-cancel">
+          <button type="button" class="action-sheet-item cancel" id="confirm-sheet-cancel">Cancel</button>
+        </div>
+      </div>
     </div>
 
     <!-- Detail -->
@@ -746,262 +1453,277 @@
         </div>
       </div>
     </div>
+
+    <!-- Library (My Reps) -->
+    <div id="library-screen" class="hidden">
+      <div class="screen-header">
+        <button type="button" class="back-btn" id="library-back">← Routes</button>
+        <div class="stops-header-row">
+          <div class="screen-title">Reps</div>
+          <button type="button" class="new-item-btn" id="new-stop-btn">+ New Rep</button>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <button type="button" class="tab-btn active" id="tab-mine">Mine</button>
+        <button type="button" class="tab-btn" id="tab-builtin">Library</button>
+      </div>
+      <div id="library-list" class="stop-list"></div>
+      <div id="library-empty" class="list-empty hidden">
+        <p>No custom reps yet.</p>
+        <p>Tap <strong>+ New Rep</strong> to create your first interaction card.</p>
+      </div>
+    </div>
+
+    <!-- Rep Editor -->
+    <div id="stop-editor-screen" class="hidden">
+      <div class="screen-header">
+        <button type="button" class="back-btn" id="stop-editor-back">← My Reps</button>
+        <div class="stops-header-row">
+          <div class="screen-title" id="stop-editor-title">New Rep</div>
+          <button type="button" class="editor-delete-btn hidden" id="stop-editor-delete">Delete</button>
+        </div>
+      </div>
+      <div class="editor-body">
+        <div class="editor-field">
+          <label class="editor-label" for="stop-label-input">Label</label>
+          <input type="text" id="stop-label-input" class="editor-input" placeholder="e.g. Dog walker" autocomplete="off" />
+        </div>
+        <div class="editor-section">
+          <div class="editor-section-header">
+            <span class="editor-section-title">Openers</span>
+            <button type="button" class="add-line-btn" id="add-opener-btn">+ Add</button>
+          </div>
+          <div id="openers-list" class="line-inputs-list"></div>
+        </div>
+        <div class="editor-section">
+          <div class="editor-section-header">
+            <span class="editor-section-title">Follow-ups</span>
+            <button type="button" class="add-line-btn" id="add-followup-btn">+ Add</button>
+          </div>
+          <div id="followups-list" class="line-inputs-list"></div>
+        </div>
+      </div>
+      <div class="editor-footer">
+        <button type="button" class="save-btn" id="stop-editor-save">Save Rep</button>
+      </div>
+    </div>
+
+    <!-- Route Editor -->
+    <div id="route-editor-screen" class="hidden">
+      <div class="ios-nav-bar">
+        <button type="button" class="ios-nav-btn" id="route-editor-back">Cancel</button>
+        <span class="ios-nav-title" id="route-editor-title">New Route</span>
+        <button type="button" class="ios-nav-btn ios-nav-btn-primary" id="route-editor-save">Save</button>
+      </div>
+      <div class="ios-form-body">
+        <div class="ios-section">
+          <div class="ios-section-label">Route Name</div>
+          <div class="ios-group">
+            <input type="text" id="route-name-input" class="ios-cell-input" placeholder="Morning walk" autocomplete="off" />
+          </div>
+        </div>
+        <div class="ios-section">
+          <div class="ios-section-label">Reps in This Route</div>
+          <div class="ios-group">
+            <div id="route-stops-list" class="route-stops-sortable"></div>
+            <div id="route-stops-empty" class="ios-empty-hint hidden">Add reps from below</div>
+          </div>
+          <div class="ios-footnote">Drag to reorder. Tap × to remove.</div>
+        </div>
+        <div class="ios-section">
+          <div class="ios-section-label">Add Reps</div>
+          <div class="ios-group">
+            <div class="tab-bar">
+              <button type="button" class="tab-btn active" id="picker-tab-mine">Mine</button>
+              <button type="button" class="tab-btn" id="picker-tab-library">Library</button>
+            </div>
+            <div id="stop-picker" class="stop-picker"></div>
+            <div id="stop-picker-empty" class="ios-empty-hint hidden">
+              No custom reps yet —
+              <button type="button" class="add-line-btn" id="go-create-stop-btn">create a rep first</button>
+            </div>
+          </div>
+        </div>
+        <div class="ios-section hidden" id="route-delete-section">
+          <button type="button" class="ios-destructive-row" id="route-editor-delete">Delete Route</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
     const STORAGE_KEY = "dailyReps";
 
-    const routes = [
+    const STARTER_REPS = [
+      // — General street —
       {
-        id: "safeway",
-        name: "Safeway",
-        stops: [
-          {
-            label: "Dog walker",
-            openers: ["What's his name?", "What a handsome dog.", "Cute dog — yours?"],
-            followups: ["How old is he?", "What breed is he?", "Is he friendly with other dogs?"]
-          },
-          {
-            label: "Person on the street",
-            openers: [
-              "Is there a grocery store down the way?",
-              "Do you know a good coffee shop nearby?",
-              "Hey — am I headed toward Clarendon?"
-            ],
-            followups: [
-              "You from around here?",
-              "Thanks — that's helpful.",
-              "Appreciate it."
-            ]
-          },
-          {
-            label: "Person exiting the store",
-            openers: ["Busy in there?", "How long was the line?", "Worth the trip?"],
-            followups: ["How was checkout?", "Was the line worth it?", "Would you come back at this hour?"]
-          },
-          {
-            label: "Person stocking shelves",
-            openers: ["Hey, you guys carry [thing]?", "Which aisle is [thing] in?", "Where do you keep [thing]?"],
-            followups: [
-              "Do you like working here?",
-              "How long have you worked here?",
-              "You always work this section?"
-            ]
-          },
-          {
-            label: "Person at the shelf",
-            openers: ["Is that any good?", "What's good on this aisle?", "Have you tried this one before?"],
-            followups: ["Which would you pick?", "What else is good on this aisle?", "Do you come here a lot?"]
-          },
-          {
-            label: "Person by the fruit",
-            openers: ["Which of these is in season?", "Are these ripe?", "What would you grab here?"],
-            followups: ["What else should I be getting?", "How do you tell if they're ripe?", "Do you shop here often?"]
-          },
-          {
-            label: "Store clerk",
-            openers: ["Good day so far?", "How's it going?", "Slow or busy today?"],
-            followups: ["How busy has it been?", "Got plans after your shift?", "What's the strangest thing you've seen today?"]
-          },
-          {
-            label: "Person coming in as you walk out",
-            openers: ["Good luck in there.", "How busy is it in there?", "Worth going in right now?"],
-            followups: ["How long was the line?", "Was checkout bad?", "Still worth going in?"]
-          },
-          {
-            label: "Person walking alongside you",
-            openers: ["Long day?", "Nice out today.", "Headed somewhere fun?"],
-            followups: ["You walk this route a lot?", "Work around here?", "Anywhere good to eat nearby?"]
-          }
-        ]
+        id: "starter_dog_walker",
+        label: "Dog walker",
+        openers: ["What's his name?", "What a handsome dog.", "Cute dog — yours?"],
+        followups: ["How old is he?", "What breed is he?", "Is he friendly with other dogs?"]
       },
       {
-        id: "tj",
-        name: "Trader Joe's",
-        stops: [
-          {
-            label: "Person entering the store",
-            openers: ["Think it'll be busy right now?", "How's the line looking?", "Worth going in right now?"],
-            followups: ["How long was the line?", "Was checkout bad?", "Still worth it?"]
-          },
-          {
-            label: "Free sample person",
-            openers: ["Is this actually good?", "What's in this one?", "You have to eat this all day?"],
-            followups: ["What's the best thing you've sampled?", "What should I buy?", "Do you shop here too?"]
-          },
-          {
-            label: "Person stocking shelves",
-            openers: ["Hey, you guys carry [thing]?", "Which aisle is [thing] in?", "Where do you keep [thing]?"],
-            followups: ["Do you like working here?", "How long have you worked here?", "You always work this section?"]
-          },
-          {
-            label: "Person at the shelf",
-            openers: ["Is that any good?", "What's good on this aisle?", "Have you tried this one before?"],
-            followups: ["Which would you pick?", "What else is good on this aisle?", "Do you come here a lot?"]
-          },
-          {
-            label: "Person by the fruit",
-            openers: ["Which of these is in season?", "Are these ripe?", "What would you grab here?"],
-            followups: ["What else should I be getting?", "How do you tell if they're ripe?", "Do you shop here often?"]
-          },
-          {
-            label: "Person in the aisle",
-            openers: ["Have you tried this one?", "Which of these is better?", "What would you grab here?"],
-            followups: ["Which would you pick?", "What else is good in this aisle?", "Do you come here often?"]
-          },
-          {
-            label: "Person in line before checkout",
-            openers: ["Had any of these?", "Which looks best to you?", "Know which is worth it?"],
-            followups: ["Which would you pick?", "What else is good?", "Do you get this often?"]
-          },
-          {
-            label: "Store clerk at checkout",
-            openers: ["Good day so far?", "How's it going?", "Slow or busy today?"],
-            followups: ["How busy has it been?", "Got plans after your shift?", "What's the strangest thing you've seen today?"]
-          },
-          {
-            label: "Person in the elevator leaving",
-            openers: ["Find anything good?", "Good haul?", "Get everything you needed?"],
-            followups: ["How long was the line?", "Get everything you needed?", "What did you end up getting?"]
-          }
-        ]
+        id: "starter_person_on_street",
+        label: "Person on the street",
+        openers: ["Is there a good coffee shop nearby?", "Do you know this area well?", "Hey — am I headed toward downtown?"],
+        followups: ["You from around here?", "Thanks — that's helpful.", "Appreciate it."]
       },
       {
-        id: "clarendon",
-        name: "Clarendon",
-        stops: [
-          {
-            label: "Metro question",
-            openers: ["Is the metro right up here?", "Which line is this?", "Does this go toward DC?"],
-            followups: ["You from around here?", "How long have you lived here?", "Thanks — appreciate it."]
-          },
-          {
-            label: "Dog walker",
-            openers: ["What's his name?", "What a handsome dog.", "Cute dog — yours?"],
-            followups: ["How old is he?", "What breed is he?", "Is he friendly with other dogs?"]
-          },
-          {
-            label: "Person walking by",
-            openers: ["Is there a good coffee spot around here?", "Know a good place to eat nearby?", "Any good spots around here?"],
-            followups: ["You from around here?", "Thanks — appreciate it.", "Which would you pick?"]
-          },
-          {
-            label: "Person at a stoplight",
-            openers: ["Long day?", "Headed somewhere good?", "Nice day out."],
-            followups: ["What do you do around here?", "You from around here?", "Enjoy the rest of your day."]
-          },
-          {
-            label: "Person at a bus stop",
-            openers: ["Where does this bus go?", "Does this bus go to Clarendon?", "How often does it come?"],
-            followups: ["You from around here?", "You ride this often?", "Thanks — appreciate it."]
-          },
-          {
-            label: "Person in B&N",
-            openers: ["Have you read any of these?", "Anything good in here?", "Anything you'd recommend?"],
-            followups: ["Anything worth getting?", "What's your favorite section?", "Do you come here a lot?"]
-          },
-          {
-            label: "Person in Crate & Barrel",
-            openers: ["Do you cook much?", "Shopping for yourself or a gift?", "See anything you like?"],
-            followups: ["What do you actually use?", "What's worth the money here?", "Do you come here often?"]
-          },
-          {
-            label: "Person in cafe (in line)",
-            openers: ["Been here before?", "What's good here?", "Is the line always this long?"],
-            followups: ["What do you usually get?", "What's worth ordering?", "Do you come here a lot?"]
-          },
-          {
-            label: "Person at cafe (waiting for drink)",
-            openers: ["What did you get?", "What'd you order?", "First time trying this place?"],
-            followups: ["Is it good?", "What else is good here?", "Do you come here often?"]
-          },
-          {
-            label: "Person at cafe (reading)",
-            openers: ["Good book?", "What are you reading?", "Is that worth picking up?"],
-            followups: ["Would you recommend it?", "What else have you liked lately?", "Do you come here to read often?"]
-          },
-          {
-            label: "Person sitting (walking back)",
-            openers: ["Know a good coffee spot nearby?", "You from around here?", "Nice spot to sit."],
-            followups: ["You from around here?", "Thanks — helpful.", "Come here often?"]
-          },
-          {
-            label: "Person walking (walking back)",
-            openers: ["Long day?", "Nice out today.", "Headed somewhere fun?"],
-            followups: ["You walk this route a lot?", "Work around here?", "Anywhere good to eat nearby?"]
-          }
-        ]
+        id: "starter_walking_alongside",
+        label: "Person walking alongside you",
+        openers: ["Long day?", "Nice out today.", "Headed somewhere fun?"],
+        followups: ["You walk this route a lot?", "Work around here?", "Anywhere good to eat nearby?"]
       },
       {
-        id: "georgetown",
-        name: "Georgetown",
-        stops: [
-          {
-            label: "Dog walker",
-            openers: ["What's his name?", "What a handsome dog.", "Cute dog — yours?"],
-            followups: ["How old is he?", "What breed is he?", "Is he friendly with other dogs?"]
-          },
-          {
-            label: "Person walking by",
-            openers: ["I like that [thing about them].", "Know a good place to eat nearby?", "Any good spots around here?"],
-            followups: ["You from around here?", "Thanks — appreciate it.", "Which would you pick?"]
-          },
-          {
-            label: "Person at a stoplight",
-            openers: ["Long day?", "Headed somewhere good?", "Nice day out."],
-            followups: ["What do you do around here?", "You from around here?", "Enjoy the rest of your day."]
-          },
-          {
-            label: "Barista",
-            openers: ["What's the most popular drink?", "What would you recommend?", "What's actually worth getting?"],
-            followups: ["What do you usually get?", "What's underrated here?", "Do you drink coffee all day?"]
-          },
-          {
-            label: "People walking past",
-            openers: ["Nice day for a walk.", "You headed to the waterfront?", "Is it always this busy here?"],
-            followups: ["You know this area well?", "You from around here?", "Anywhere good to eat nearby?"]
-          },
-          {
-            label: "Person in furniture store",
-            openers: ["Do you work here?", "Shopping for a specific room?", "See anything you like?"],
-            followups: ["What's worth buying here?", "What do people get wrong most often?", "Do you come here often?"]
-          },
-          {
-            label: "Person in clothing store",
-            openers: ["Is this popular right now?", "Think this works?", "What do people usually get from here?"],
-            followups: ["What else is good here?", "Do you shop here a lot?", "Would you get this?"]
-          },
-          {
-            label: "Person in bookstore",
-            openers: ["Have you read any of these?", "Anything good in here?", "Anything you'd recommend?"],
-            followups: ["Anything worth getting?", "What's your favorite section?", "Do you come here a lot?"]
-          },
-          {
-            label: "Person at ice cream shop",
-            openers: ["What did you get?", "What's the best thing here?", "Worth the wait?"],
-            followups: ["Is it good?", "What else should I try?", "Do you come here often?"]
-          },
-          {
-            label: "Georgetown waterfront",
-            openers: ["Nice view.", "You come here a lot?", "Best time to come down here?"],
-            followups: ["You from around here?", "Anywhere good to eat nearby?", "Still finding my way around — any tips?"]
-          },
-          {
-            label: "Person outside store",
-            openers: ["Know a good place to eat around here?", "Any good spots around here?", "Is this area mostly tourists?"],
-            followups: ["You from around here?", "Thanks — appreciate it.", "Which would you pick?"]
-          },
-          {
-            label: "Person walking back",
-            openers: ["Long day?", "Nice out today.", "Headed somewhere fun?"],
-            followups: ["You walk this route a lot?", "Work around here?", "Anywhere good to eat nearby?"]
-          }
-        ]
+        id: "starter_person_walking_by",
+        label: "Person walking by",
+        openers: ["Is there a good coffee spot around here?", "Know a good place to eat nearby?", "Any good spots around here?"],
+        followups: ["You from around here?", "Thanks — appreciate it.", "Which would you pick?"]
+      },
+      {
+        id: "starter_people_walking_past",
+        label: "People walking past",
+        openers: ["Nice day for a walk.", "Is it always this busy here?", "You headed anywhere fun?"],
+        followups: ["You know this area well?", "You from around here?", "Anywhere good to eat nearby?"]
+      },
+      {
+        id: "starter_stoplight",
+        label: "Person at a stoplight",
+        openers: ["Long day?", "Headed somewhere good?", "Nice day out."],
+        followups: ["What do you do around here?", "You from around here?", "Enjoy the rest of your day."]
+      },
+      // — Transit —
+      {
+        id: "starter_metro_question",
+        label: "Metro question",
+        openers: ["Is the metro right up here?", "Which line is this?", "Does this go toward DC?"],
+        followups: ["You from around here?", "How long have you lived here?", "Thanks — appreciate it."]
+      },
+      {
+        id: "starter_bus_stop",
+        label: "Person at a bus stop",
+        openers: ["Where does this bus go?", "Does this bus go to Clarendon?", "How often does it come?"],
+        followups: ["You from around here?", "You ride this often?", "Thanks — appreciate it."]
+      },
+      // — Grocery / store —
+      {
+        id: "starter_store_clerk",
+        label: "Store clerk",
+        openers: ["Good day so far?", "How's it going?", "Slow or busy today?"],
+        followups: ["How busy has it been?", "Got plans after your shift?", "What's the best part of working here?"]
+      },
+      {
+        id: "starter_person_stocking_shelves",
+        label: "Person stocking shelves",
+        openers: ["Hey, you guys carry [thing]?", "Which aisle is [thing] in?", "Where do you keep [thing]?"],
+        followups: ["Do you like working here?", "How long have you worked here?", "You always work this section?"]
+      },
+      {
+        id: "starter_person_at_shelf",
+        label: "Person at the shelf",
+        openers: ["Is that any good?", "What's good on this aisle?", "Have you tried this one before?"],
+        followups: ["Which would you pick?", "What else is good on this aisle?", "Do you come here a lot?"]
+      },
+      {
+        id: "starter_person_in_aisle",
+        label: "Person in the aisle",
+        openers: ["Have you tried this one?", "Which of these is better?", "What would you grab here?"],
+        followups: ["Which would you pick?", "What else is good in this aisle?", "Do you come here often?"]
+      },
+      {
+        id: "starter_person_by_fruit",
+        label: "Person by the produce",
+        openers: ["Which of these is in season?", "Are these ripe?", "What would you grab here?"],
+        followups: ["What else should I be getting?", "How do you tell if they're ripe?", "Do you shop here often?"]
+      },
+      {
+        id: "starter_person_entering_store",
+        label: "Person entering the store",
+        openers: ["Think it'll be busy right now?", "How's the line looking?", "Worth going in right now?"],
+        followups: ["How long was the line?", "Was checkout bad?", "Still worth it?"]
+      },
+      {
+        id: "starter_person_exiting_store",
+        label: "Person exiting the store",
+        openers: ["Busy in there?", "How long was the line?", "Worth the trip?"],
+        followups: ["How was checkout?", "Was the line worth it?", "Would you come back at this hour?"]
+      },
+      {
+        id: "starter_free_sample",
+        label: "Free sample person",
+        openers: ["Is this actually good?", "What's in this one?", "You have to eat this all day?"],
+        followups: ["What's the best thing you've sampled?", "What should I buy?", "Do you shop here too?"]
+      },
+      {
+        id: "starter_checkout_line",
+        label: "Person in the checkout line",
+        openers: ["Always this busy at this hour?", "Find everything you needed?", "Had any of these?"],
+        followups: ["You shop here often?", "What do you think of this place?", "Any hidden gems in this store?"]
+      },
+      // — Café —
+      {
+        id: "starter_barista",
+        label: "Barista",
+        openers: ["What's the most popular drink?", "What would you recommend?", "What's actually worth getting?"],
+        followups: ["What do you usually get?", "What's underrated here?", "Do you drink coffee all day?"]
+      },
+      {
+        id: "starter_cafe_in_line",
+        label: "Person in cafe (in line)",
+        openers: ["Been here before?", "What's good here?", "Is the line always this long?"],
+        followups: ["What do you usually get?", "What's worth ordering?", "Do you come here a lot?"]
+      },
+      {
+        id: "starter_cafe_waiting",
+        label: "Person at cafe (waiting for drink)",
+        openers: ["What did you get?", "What'd you order?", "First time trying this place?"],
+        followups: ["Is it good?", "What else is good here?", "Do you come here often?"]
+      },
+      {
+        id: "starter_cafe_reading",
+        label: "Person at cafe (reading / working)",
+        openers: ["Good book?", "What are you reading?", "What are you working on?"],
+        followups: ["Would you recommend it?", "Good spot to get things done?", "Do you come here to work often?"]
+      },
+      // — Retail / other —
+      {
+        id: "starter_bookstore",
+        label: "Person in bookstore",
+        openers: ["Have you read any of these?", "Anything good in here?", "Anything you'd recommend?"],
+        followups: ["Anything worth getting?", "What's your favorite section?", "Do you come here a lot?"]
+      },
+      {
+        id: "starter_clothing_store",
+        label: "Person in clothing store",
+        openers: ["Is this popular right now?", "Think this works?", "What do people usually get from here?"],
+        followups: ["What else is good here?", "Do you shop here a lot?", "Would you get this?"]
+      },
+      {
+        id: "starter_furniture_store",
+        label: "Person in furniture / home store",
+        openers: ["Do you cook much?", "Shopping for yourself or a gift?", "See anything you like?"],
+        followups: ["What do you actually use?", "What's worth the money here?", "Do you come here often?"]
+      },
+      {
+        id: "starter_ice_cream",
+        label: "Person at ice cream shop",
+        openers: ["What did you get?", "What's the best thing here?", "Worth the wait?"],
+        followups: ["Is it good?", "What else should I try?", "Do you come here often?"]
+      },
+      {
+        id: "starter_outside_store",
+        label: "Person outside a store",
+        openers: ["Know a good place to eat around here?", "Any good spots around here?", "Is this area mostly tourists?"],
+        followups: ["You from around here?", "Thanks — appreciate it.", "Which would you pick?"]
       }
     ];
 
+    const routes = [];
+
     let currentRouteIdx = null;
     let currentStopIdx = null;
+    let currentRouteIsCustom = false;
+    let currentCustomRouteId = null;
     let state = loadState();
 
     function todayStr() {
@@ -1028,7 +1750,9 @@
         weekKey: weekKey(),
         weekCompletions: [],
         today: todayStr(),
-        todayReps: {}
+        todayReps: {},
+        customStops: [],
+        customRoutes: []
       };
     }
 
@@ -1048,8 +1772,25 @@
         weekKey: s.weekKey || base.weekKey,
         weekCompletions: Array.isArray(s.weekCompletions) ? s.weekCompletions : [],
         today: s.today || base.today,
-        todayReps: s.todayReps && typeof s.todayReps === "object" ? s.todayReps : {}
+        todayReps: s.todayReps && typeof s.todayReps === "object" ? s.todayReps : {},
+        customStops: Array.isArray(s.customStops) ? s.customStops : [],
+        customRoutes: Array.isArray(s.customRoutes) ? s.customRoutes : [],
+        starterRepsSeeded: !!s.starterRepsSeeded,
+        seededRepIds: Array.isArray(s.seededRepIds) ? s.seededRepIds : []
       };
+
+      // Add any starters whose IDs haven't been seeded yet (runs on every load, safe to add new starters later)
+      const seededSet = new Set(out.seededRepIds);
+      const existingIds = new Set(out.customStops.map(function(cs) { return cs.id; }));
+      const newSeeds = [];
+      STARTER_REPS.forEach(function(rep) {
+        if (!seededSet.has(rep.id)) {
+          if (!existingIds.has(rep.id)) out.customStops.push(rep);
+          newSeeds.push(rep.id);
+        }
+      });
+      if (newSeeds.length) out.seededRepIds = out.seededRepIds.concat(newSeeds);
+      out.starterRepsSeeded = true;
 
       if (out.weekKey !== weekKey()) {
         out.weekKey = weekKey();
@@ -1064,6 +1805,62 @@
 
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    /* —— Custom stop / route helpers —— */
+
+    function getCustomRoute(id) {
+      return state.customRoutes.find(function(r) { return r.id === id; });
+    }
+
+    function getCustomStop(id) {
+      return state.customStops.find(function(s) { return s.id === id; });
+    }
+
+    function getCustomRouteStops(routeId) {
+      var cr = getCustomRoute(routeId);
+      if (!cr) return [];
+      return cr.stopIds.map(getCustomStop).filter(Boolean);
+    }
+
+    function isCustomRepDone(routeId, stopId) {
+      return (state.todayReps[routeId] || []).indexOf(stopId) >= 0;
+    }
+
+    function toggleCustomRep(routeId, stopId) {
+      var reps = (state.todayReps[routeId] || []).slice();
+      var idx = reps.indexOf(stopId);
+      if (idx >= 0) reps.splice(idx, 1);
+      else reps.push(stopId);
+      state.todayReps[routeId] = reps;
+      saveState();
+      maybeCreditCustomRoute(routeId);
+      return idx < 0;
+    }
+
+    function customRouteRepCount(routeId) {
+      return (state.todayReps[routeId] || []).length;
+    }
+
+    function isCustomRouteComplete(routeId) {
+      var stops = getCustomRouteStops(routeId);
+      return stops.length > 0 && customRouteRepCount(routeId) >= stops.length;
+    }
+
+    function maybeCreditCustomRoute(routeId) {
+      if (!isCustomRouteComplete(routeId)) return;
+      var today = todayStr();
+      var already = state.weekCompletions.some(function(c) {
+        return c.routeId === routeId && c.date === today;
+      });
+      if (already) return;
+      state.weekCompletions.push({ routeId: routeId, date: today });
+      saveState();
+    }
+
+    function getCurrentRouteStopCount() {
+      if (currentRouteIsCustom) return getCustomRouteStops(currentCustomRouteId).length;
+      return routes[currentRouteIdx].stops.length;
     }
 
     function stopId(routeIdx, stopIdx) {
@@ -1124,6 +1921,15 @@
       return seen.size;
     }
 
+    function todayRouteCount() {
+      var today = todayStr();
+      var seen = new Set();
+      state.weekCompletions.forEach(function(c) {
+        if (c.date === today) seen.add(c.routeId);
+      });
+      return seen.size;
+    }
+
     function isDateInWeek(dateStr) {
       const d = new Date(dateStr + "T12:00:00");
       const monday = getMonday(new Date());
@@ -1142,47 +1948,70 @@
     }
 
     function showScreen(name) {
-      document.getElementById("home-screen").classList.toggle("hidden", name !== "home");
-      document.getElementById("stops-screen").classList.toggle("hidden", name !== "stops");
-      document.getElementById("detail-screen").classList.toggle("hidden", name !== "detail");
+      closeStopsMenu();
+      closeConfirmSheet();
+      ["home", "stops", "detail", "library", "stop-editor", "route-editor"].forEach(function(s) {
+        document.getElementById(s + "-screen").classList.toggle("hidden", name !== s);
+      });
+      window.scrollTo(0, 0);
     }
 
     function renderHome() {
       state = normalizeState(state);
       saveState();
 
-      document.getElementById("week-route-count").textContent = weekRouteCount();
+      document.getElementById("week-route-count").textContent = todayRouteCount();
 
-      const dotsEl = document.getElementById("week-dots");
-      dotsEl.innerHTML = "";
-      routes.forEach((r) => {
-        const doneThisWeek = state.weekCompletions.some((c) => c.routeId === r.id && isDateInWeek(c.date));
-        const dot = document.createElement("div");
-        dot.className = "week-dot" + (doneThisWeek ? " done" : "");
-        dot.title = r.name;
-        dot.setAttribute("aria-label", r.name + (doneThisWeek ? " completed this week" : ""));
-        dotsEl.appendChild(dot);
-      });
+      var repCount = state.customStops.length;
+      document.getElementById("my-stops-count").textContent = repCount + " rep" + (repCount !== 1 ? "s" : "");
 
-      const list = document.getElementById("route-list");
+      var list = document.getElementById("route-list");
       list.innerHTML = "";
-      routes.forEach((route, i) => {
-        const done = routeRepCount(i);
-        const total = route.stops.length;
-        const pct = total ? (done / total) * 100 : 0;
-        const card = document.createElement("div");
+
+      routes.forEach(function(route, i) {
+        var done = routeRepCount(i);
+        var total = route.stops.length;
+        var pct = total ? (done / total) * 100 : 0;
+        var card = document.createElement("div");
         card.className = "route-card";
         card.innerHTML =
-          '<div><div class="route-name">' +
+          '<div style="flex:1;min-width:0"><div class="route-name">' +
           escapeHtml(route.name) +
           '</div><div class="route-meta">' +
-          (done > 0 ? done + " / " + total + " reps today" : total + " stops") +
+          (done > 0 ? done + " / " + total + " reps today" : total + " reps") +
           '</div><div class="route-progress-mini route-progress-track"><span class="route-progress-fill" style="width:' +
-          pct +
-          '%"></span></div></div><span class="route-arrow">›</span>';
-        card.onclick = () => showStops(i);
+          pct + '%"></span></div></div><span class="route-arrow">›</span>';
+        card.onclick = (function(idx) { return function() { showStops(idx, false); }; })(i);
         list.appendChild(card);
       });
+
+      state.customRoutes.forEach(function(route) {
+        var stops = getCustomRouteStops(route.id);
+        var done = customRouteRepCount(route.id);
+        var total = stops.length;
+        var pct = total ? (done / total) * 100 : 0;
+        var card = document.createElement("div");
+        card.className = "route-card";
+        card.innerHTML =
+          '<div style="flex:1;min-width:0"><div class="route-name">' +
+          escapeHtml(route.name) +
+          '</div><div class="route-meta">' +
+          (done > 0 ? done + " / " + total + " reps today" : total + " rep" + (total !== 1 ? "s" : "")) +
+          '</div><div class="route-progress-mini route-progress-track"><span class="route-progress-fill" style="width:' +
+          pct + '%"></span></div></div>' +
+          '<span class="route-arrow">›</span>';
+        card.onclick = (function(rid) {
+          return function() { showStops(null, true, rid); };
+        })(route.id);
+        list.appendChild(card);
+      });
+
+      var newBtn = document.createElement("button");
+      newBtn.type = "button";
+      newBtn.className = "new-route-btn";
+      newBtn.textContent = "+ New Route";
+      newBtn.onclick = function() { showRouteEditor(null); };
+      list.appendChild(newBtn);
     }
 
     function showHome() {
@@ -1192,62 +2021,101 @@
     }
 
     function updateRouteProgressUI(routeIdx) {
-      const done = routeRepCount(routeIdx);
-      const total = routes[routeIdx].stops.length;
-      const pct = total ? Math.round((done / total) * 100) : 0;
-      const text = done + " / " + total;
+      var done, total;
+      if (currentRouteIsCustom) {
+        done = customRouteRepCount(currentCustomRouteId);
+        total = getCustomRouteStops(currentCustomRouteId).length;
+      } else {
+        var idx = routeIdx !== undefined ? routeIdx : currentRouteIdx;
+        done = routeRepCount(idx);
+        total = routes[idx].stops.length;
+      }
+      var pct = total ? Math.round((done / total) * 100) : 0;
+      var text = done + " / " + total;
 
-      const stopsFraction = document.getElementById("progress-fraction");
-      const stopsFill = document.getElementById("progress-bar-fill");
+      var stopsFraction = document.getElementById("progress-fraction");
+      var stopsFill = document.getElementById("progress-bar-fill");
       if (stopsFraction) stopsFraction.textContent = text;
       if (stopsFill) stopsFill.style.width = pct + "%";
 
-      const detailText = document.getElementById("detail-progress-text");
-      const detailFill = document.getElementById("detail-progress-fill");
+      var detailText = document.getElementById("detail-progress-text");
+      var detailFill = document.getElementById("detail-progress-fill");
       if (detailText) detailText.textContent = text;
       if (detailFill) detailFill.style.width = pct + "%";
 
-      return { done, total, pct };
+      return { done: done, total: total, pct: pct };
     }
 
     function resetTodayRouteProgress(routeIdx) {
-      const route = routes[routeIdx];
-      const done = routeRepCount(routeIdx);
+      if (currentRouteIsCustom) {
+        if (customRouteRepCount(currentCustomRouteId) === 0) return;
+        if (!confirm("Reset today's progress for this route? This can't be undone.")) return;
+        state.todayReps[currentCustomRouteId] = [];
+        var todayC = todayStr();
+        state.weekCompletions = state.weekCompletions.filter(function(c) {
+          return !(c.routeId === currentCustomRouteId && c.date === todayC);
+        });
+        saveState();
+        showStops(null, true, currentCustomRouteId);
+        showToast("Today's progress reset");
+        return;
+      }
+      var route = routes[routeIdx];
+      var done = routeRepCount(routeIdx);
       if (done === 0) return;
-
       if (!confirm("Reset today's progress for this route? This can't be undone.")) return;
-
       state.todayReps[route.id] = [];
-      const today = todayStr();
-      state.weekCompletions = state.weekCompletions.filter(
-        (c) => !(c.routeId === route.id && c.date === today)
-      );
+      var today = todayStr();
+      state.weekCompletions = state.weekCompletions.filter(function(c) {
+        return !(c.routeId === route.id && c.date === today);
+      });
       saveState();
-      showStops(routeIdx);
+      showStops(routeIdx, false);
       showToast("Today's progress reset");
     }
 
-    function showStops(routeIdx) {
-      currentRouteIdx = routeIdx;
-      const route = routes[routeIdx];
-      document.getElementById("stops-title").textContent = route.name;
+    function showStops(routeIdx, isCustom, customRouteId) {
+      currentRouteIsCustom = !!isCustom;
+      currentCustomRouteId = customRouteId || null;
 
-      const { done, total } = updateRouteProgressUI(routeIdx);
+      var routeId, routeName, stops;
+      if (isCustom) {
+        currentRouteIdx = null;
+        var cr = getCustomRoute(customRouteId);
+        routeId = cr.id;
+        routeName = cr.name;
+        stops = getCustomRouteStops(customRouteId);
+      } else {
+        currentRouteIdx = routeIdx;
+        var route = routes[routeIdx];
+        routeId = route.id;
+        routeName = route.name;
+        stops = route.stops;
+      }
 
-      const banner = document.getElementById("route-complete-banner");
-      const credited = state.weekCompletions.some(
-        (c) => c.routeId === route.id && c.date === todayStr()
-      );
+      document.getElementById("stops-title").textContent = routeName;
+
+      var progress = updateRouteProgressUI(routeIdx);
+      var done = progress.done;
+      var total = progress.total;
+
+      var banner = document.getElementById("route-complete-banner");
+      var credited = state.weekCompletions.some(function(c) {
+        return c.routeId === routeId && c.date === todayStr();
+      });
       banner.classList.toggle("hidden", !(done >= total && credited));
 
-      document.getElementById("reset-today-btn").classList.toggle("hidden", done === 0);
+      updateStopsScreenActions(done, total, isCustom);
 
-      const list = document.getElementById("stop-list");
+      var list = document.getElementById("stop-list");
       list.innerHTML = "";
-      route.stops.forEach((stop, i) => {
-        const card = document.createElement("div");
-        card.className = "stop-card" + (isRepDone(routeIdx, i) ? " done" : "");
-        const preview = stopPreviewText(stop);
+      stops.forEach(function(stop, i) {
+        var isDone = isCustom
+          ? isCustomRepDone(customRouteId, stop.id)
+          : isRepDone(routeIdx, i);
+        var card = document.createElement("div");
+        card.className = "stop-card" + (isDone ? " done" : "");
+        var preview = stopPreviewText(stop);
         card.innerHTML =
           '<div class="stop-check"><span class="stop-num-inner">' +
           (i + 1) +
@@ -1257,23 +2125,117 @@
           '</div><div class="stop-preview">' +
           escapeHtml(preview) +
           '</div></div><span class="stop-chevron">›</span>';
-        card.onclick = () => showDetail(i);
+        card.onclick = (function(idx) { return function() { showDetail(idx); }; })(i);
         list.appendChild(card);
       });
 
       showScreen("stops");
     }
 
+    function updateStopsScreenActions(done, total, isCustom) {
+      var startBtn = document.getElementById("start-route-btn");
+      if (total === 0) {
+        startBtn.textContent = "Start route";
+        startBtn.disabled = true;
+      } else if (done >= total) {
+        startBtn.textContent = "Review route";
+        startBtn.disabled = false;
+      } else if (done > 0) {
+        startBtn.textContent = "Continue route";
+        startBtn.disabled = false;
+      } else {
+        startBtn.textContent = "Start route";
+        startBtn.disabled = false;
+      }
+
+      var showEdit = isCustom;
+      var showReset = done > 0;
+      document.getElementById("menu-edit-route").classList.toggle("hidden", !showEdit);
+      document.getElementById("menu-reset-today").classList.toggle("hidden", !showReset);
+      document.getElementById("stops-menu-btn").classList.toggle("hidden", !showEdit && !showReset);
+    }
+
+    function getFirstRouteStopIndex() {
+      var stopCount = getCurrentRouteStopCount();
+      if (!stopCount) return 0;
+
+      for (var i = 0; i < stopCount; i++) {
+        var isDone = currentRouteIsCustom
+          ? isCustomRepDone(currentCustomRouteId, getCustomRouteStops(currentCustomRouteId)[i].id)
+          : isRepDone(currentRouteIdx, i);
+        if (!isDone) return i;
+      }
+      return 0;
+    }
+
+    function startRoute() {
+      if (getCurrentRouteStopCount() === 0) return;
+      showDetail(getFirstRouteStopIndex());
+    }
+
+    function openStopsMenu() {
+      var sheet = document.getElementById("stops-action-sheet");
+      sheet.classList.remove("hidden");
+      sheet.setAttribute("aria-hidden", "false");
+      requestAnimationFrame(function() { sheet.classList.add("show"); });
+    }
+
+    function closeStopsMenu() {
+      var sheet = document.getElementById("stops-action-sheet");
+      sheet.classList.remove("show");
+      sheet.setAttribute("aria-hidden", "true");
+      setTimeout(function() {
+        if (!sheet.classList.contains("show")) sheet.classList.add("hidden");
+      }, 320);
+    }
+
+    var confirmSheetCallback = null;
+
+    function openConfirmSheet(options) {
+      document.getElementById("confirm-sheet-title").textContent = options.title || "";
+      document.getElementById("confirm-sheet-message").textContent = options.message || "";
+      document.getElementById("confirm-sheet-confirm").textContent = options.confirmLabel || "Delete";
+      document.getElementById("confirm-sheet-header").classList.toggle(
+        "hidden",
+        !options.title && !options.message
+      );
+      confirmSheetCallback = options.onConfirm || null;
+      var sheet = document.getElementById("confirm-action-sheet");
+      sheet.classList.remove("hidden");
+      sheet.setAttribute("aria-hidden", "false");
+      requestAnimationFrame(function() { sheet.classList.add("show"); });
+    }
+
+    function closeConfirmSheet() {
+      var sheet = document.getElementById("confirm-action-sheet");
+      sheet.classList.remove("show");
+      sheet.setAttribute("aria-hidden", "true");
+      confirmSheetCallback = null;
+      setTimeout(function() {
+        if (!sheet.classList.contains("show")) sheet.classList.add("hidden");
+      }, 320);
+    }
+
     function showDetail(stopIdx) {
       currentStopIdx = stopIdx;
-      const route = routes[currentRouteIdx];
-      const stop = route.stops[stopIdx];
+
+      var stop, routeName;
+      if (currentRouteIsCustom) {
+        var customStops = getCustomRouteStops(currentCustomRouteId);
+        stop = customStops[stopIdx];
+        var cr = getCustomRoute(currentCustomRouteId);
+        routeName = cr ? cr.name : "";
+      } else {
+        var route = routes[currentRouteIdx];
+        stop = route.stops[stopIdx];
+        routeName = route.name;
+      }
 
       document.getElementById("detail-title").textContent = stop.label;
-      document.getElementById("detail-back-label").textContent = route.name;
+      document.getElementById("detail-back-label").textContent = routeName;
 
-      const body = document.getElementById("detail-body");
-      if (stop.openers) {
+      var body = document.getElementById("detail-body");
+      if (stop.openers && stop.openers.length) {
         body.innerHTML =
           '<div class="line-card"><div class="line-label">Openers</div><div class="line-hint">Pick any — mix with any follow-up</div>' +
           formatScriptOptions(stop.openers) +
@@ -1295,8 +2257,15 @@
     }
 
     function updateRepButton() {
-      const btn = document.getElementById("rep-btn");
-      const done = isRepDone(currentRouteIdx, currentStopIdx);
+      var btn = document.getElementById("rep-btn");
+      var done;
+      if (currentRouteIsCustom) {
+        var customStops = getCustomRouteStops(currentCustomRouteId);
+        var stop = customStops[currentStopIdx];
+        done = stop ? isCustomRepDone(currentCustomRouteId, stop.id) : false;
+      } else {
+        done = isRepDone(currentRouteIdx, currentStopIdx);
+      }
       if (done) {
         btn.className = "rep-btn logged";
         btn.textContent = "Logged";
@@ -1309,24 +2278,35 @@
     }
 
     function handleRepToggle() {
-      const added = toggleRep(currentRouteIdx, currentStopIdx);
+      var added;
+      if (currentRouteIsCustom) {
+        var customStops = getCustomRouteStops(currentCustomRouteId);
+        var stop = customStops[currentStopIdx];
+        if (!stop) return;
+        added = toggleCustomRep(currentCustomRouteId, stop.id);
+        if (added && isCustomRouteComplete(currentCustomRouteId)) {
+          setTimeout(function() { showToast("Route complete this week!"); }, 400);
+        }
+      } else {
+        added = toggleRep(currentRouteIdx, currentStopIdx);
+        if (added && isRouteComplete(currentRouteIdx)) {
+          setTimeout(function() { showToast("Route complete this week!"); }, 400);
+        }
+      }
       updateRepButton();
       updateRouteProgressUI(currentRouteIdx);
       showToast(added ? "Rep logged" : "Rep removed");
-      if (added && isRouteComplete(currentRouteIdx)) {
-        setTimeout(() => showToast("Route complete this week!"), 400);
-      }
     }
 
     function updateNavButtons() {
-      const route = routes[currentRouteIdx];
-      const prevBtn = document.getElementById("prev-btn");
-      const nextBtn = document.getElementById("next-btn");
+      var stopCount = getCurrentRouteStopCount();
+      var prevBtn = document.getElementById("prev-btn");
+      var nextBtn = document.getElementById("next-btn");
       prevBtn.disabled = currentStopIdx <= 0;
       nextBtn.disabled = false;
       nextBtn.setAttribute(
         "aria-label",
-        currentStopIdx >= route.stops.length - 1 ? "Back to stop list" : "Next interaction"
+        currentStopIdx >= stopCount - 1 ? "Back to stop list" : "Next interaction"
       );
     }
 
@@ -1352,13 +2332,14 @@
     }
 
     function goToNextStop(animated) {
-      const route = routes[currentRouteIdx];
-      const advance = () => {
-        if (currentStopIdx < route.stops.length - 1) {
+      var stopCount = getCurrentRouteStopCount();
+      var advance = function() {
+        if (currentStopIdx < stopCount - 1) {
           showDetail(currentStopIdx + 1);
           scrollDetailTop();
         } else {
-          showStops(currentRouteIdx);
+          if (currentRouteIsCustom) showStops(null, true, currentCustomRouteId);
+          else showStops(currentRouteIdx, false);
         }
       };
       if (animated) animateDetailTransition("forward", advance);
@@ -1366,12 +2347,13 @@
     }
 
     function goToPrevStop(animated) {
-      const back = () => {
+      var back = function() {
         if (currentStopIdx > 0) {
           showDetail(currentStopIdx - 1);
           scrollDetailTop();
         } else {
-          showStops(currentRouteIdx);
+          if (currentRouteIsCustom) showStops(null, true, currentCustomRouteId);
+          else showStops(currentRouteIdx, false);
         }
       };
       if (animated) animateDetailTransition("back", back);
@@ -1406,9 +2388,12 @@
           if (Math.abs(dy) > Math.abs(dx)) return;
 
           if (dx < 0) {
-            const route = routes[currentRouteIdx];
-            if (currentStopIdx < route.stops.length - 1) goToNextStop(true);
-            else showStops(currentRouteIdx);
+            var stopCount = getCurrentRouteStopCount();
+            if (currentStopIdx < stopCount - 1) goToNextStop(true);
+            else {
+              if (currentRouteIsCustom) showStops(null, true, currentCustomRouteId);
+              else showStops(currentRouteIdx, false);
+            }
           } else {
             goToPrevStop(true);
           }
@@ -1463,14 +2448,385 @@
       );
     }
 
+    /* —— Library screen —— */
+
+    var libraryTab = "mine";
+
+    function isBuiltinRep(stop) {
+      return state.seededRepIds && state.seededRepIds.indexOf(stop.id) >= 0;
+    }
+
+    function showLibrary(tab) {
+      if (tab) libraryTab = tab;
+      renderLibrary();
+      showScreen("library");
+    }
+
+    function renderLibrary() {
+      var listEl = document.getElementById("library-list");
+      var emptyEl = document.getElementById("library-empty");
+      var newBtn = document.getElementById("new-stop-btn");
+      var tabBuiltin = document.getElementById("tab-builtin");
+      var tabMine = document.getElementById("tab-mine");
+
+      tabMine.classList.toggle("active", libraryTab === "mine");
+      tabBuiltin.classList.toggle("active", libraryTab === "builtin");
+
+      newBtn.classList.toggle("hidden", libraryTab === "builtin");
+
+      listEl.innerHTML = "";
+
+      var stops = state.customStops.filter(function(s) {
+        return libraryTab === "builtin" ? isBuiltinRep(s) : !isBuiltinRep(s);
+      });
+
+      if (!stops.length) {
+        emptyEl.classList.remove("hidden");
+        emptyEl.innerHTML = libraryTab === "builtin"
+          ? "<p>No built-in reps found.</p>"
+          : "<p>No custom reps yet.</p><p>Tap <strong>+ New Rep</strong> to create your first interaction card.</p>";
+        return;
+      }
+      emptyEl.classList.add("hidden");
+
+      stops.forEach(function(stop) {
+        var card = document.createElement("div");
+        card.className = "stop-card";
+        card.innerHTML =
+          '<div class="stop-card-edit-dot">✎</div>' +
+          '<div style="flex:1;min-width:0"><div class="stop-label">' + escapeHtml(stop.label) + '</div>' +
+          '<div class="stop-preview">' + escapeHtml(stop.openers[0] || "No openers yet") + '</div></div>' +
+          '<span class="stop-chevron">›</span>';
+        card.onclick = (function(sid) { return function() { showStopEditor(sid); }; })(stop.id);
+        listEl.appendChild(card);
+      });
+    }
+
+    /* —— Stop Editor —— */
+
+    var editingStopId = null;
+
+    function showStopEditor(stopId) {
+      editingStopId = stopId || null;
+      var stop = stopId ? state.customStops.find(function(s) { return s.id === stopId; }) : null;
+
+      document.getElementById("stop-editor-title").textContent = stop ? "Edit Rep" : "New Rep";
+      document.getElementById("stop-label-input").value = stop ? stop.label : "";
+      document.getElementById("stop-editor-delete").classList.toggle("hidden", !stop);
+
+      renderLineInputs("openers-list", stop && stop.openers.length ? stop.openers : [""]);
+      renderLineInputs("followups-list", stop && stop.followups.length ? stop.followups : [""]);
+
+      showScreen("stop-editor");
+    }
+
+    function renderLineInputs(containerId, items) {
+      var container = document.getElementById(containerId);
+      container.innerHTML = "";
+      items.forEach(function(item) {
+        container.appendChild(makeLineInputRow(item));
+      });
+    }
+
+    function makeLineInputRow(value) {
+      var row = document.createElement("div");
+      row.className = "line-input-row";
+      var input = document.createElement("input");
+      input.type = "text";
+      input.className = "line-input";
+      input.value = value || "";
+      input.placeholder = "Type here…";
+      var removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "line-remove-btn";
+      removeBtn.innerHTML = "&#215;";
+      removeBtn.setAttribute("aria-label", "Remove");
+      removeBtn.onclick = function() { row.remove(); };
+      row.appendChild(input);
+      row.appendChild(removeBtn);
+      return row;
+    }
+
+    function addLineInput(containerId) {
+      var container = document.getElementById(containerId);
+      var row = makeLineInputRow("");
+      container.appendChild(row);
+      row.querySelector("input").focus();
+    }
+
+    function getLineInputValues(containerId) {
+      var container = document.getElementById(containerId);
+      return Array.from(container.querySelectorAll("input"))
+        .map(function(i) { return i.value.trim(); })
+        .filter(function(v) { return v.length > 0; });
+    }
+
+    function saveStop() {
+      var label = document.getElementById("stop-label-input").value.trim();
+      if (!label) { showToast("Please enter a label"); return; }
+      var openers = getLineInputValues("openers-list");
+      var followups = getLineInputValues("followups-list");
+
+      if (editingStopId) {
+        var stop = state.customStops.find(function(s) { return s.id === editingStopId; });
+        if (stop) { stop.label = label; stop.openers = openers; stop.followups = followups; }
+      } else {
+        state.customStops.push({ id: "stop_" + Date.now(), label: label, openers: openers, followups: followups });
+      }
+      saveState();
+      showToast(editingStopId ? "Rep updated" : "Rep created");
+      var wasBuiltin = editingStopId && state.seededRepIds && state.seededRepIds.indexOf(editingStopId) >= 0;
+      libraryTab = wasBuiltin ? "builtin" : "mine";
+      showLibrary();
+    }
+
+    function confirmDeleteStop() {
+      if (!editingStopId) return;
+      if (!confirm("Delete this rep? It will also be removed from any routes that use it.")) return;
+      var sid = editingStopId;
+      state.customStops = state.customStops.filter(function(s) { return s.id !== sid; });
+      state.customRoutes.forEach(function(r) {
+        r.stopIds = r.stopIds.filter(function(id) { return id !== sid; });
+      });
+      saveState();
+      showToast("Rep deleted");
+      showLibrary();
+    }
+
+    /* —— Route Editor —— */
+
+    var editingRouteId = null;
+    var routeEditorStopIds = [];
+    var routeEditorSortable = null;
+    var pickerTab = "mine";
+
+    function showRouteEditor(routeId) {
+      editingRouteId = routeId || null;
+      var route = routeId ? state.customRoutes.find(function(r) { return r.id === routeId; }) : null;
+
+      document.getElementById("route-editor-title").textContent = route ? "Edit Route" : "New Route";
+      document.getElementById("route-name-input").value = route ? route.name : "";
+      document.getElementById("route-delete-section").classList.toggle("hidden", !route);
+
+      routeEditorStopIds = route ? route.stopIds.slice() : [];
+
+      pickerTab = "mine";
+      renderRouteEditorStops();
+      renderStopPicker();
+      showScreen("route-editor");
+
+      document.getElementById("picker-tab-mine").onclick = function() { pickerTab = "mine"; renderStopPicker(); };
+      document.getElementById("picker-tab-library").onclick = function() { pickerTab = "library"; renderStopPicker(); };
+
+      if (routeEditorSortable) { routeEditorSortable.destroy(); routeEditorSortable = null; }
+      initRouteEditorSortable();
+    }
+
+    function initRouteEditorSortable() {
+      var el = document.getElementById("route-stops-list");
+      if (typeof Sortable === "undefined") return;
+      routeEditorSortable = Sortable.create(el, {
+        handle: ".drag-handle",
+        animation: 150,
+        onEnd: function() {
+          routeEditorStopIds = Array.from(el.querySelectorAll("[data-stop-id]"))
+            .map(function(node) { return node.dataset.stopId; });
+          renderStopPicker();
+        }
+      });
+    }
+
+    function renderRouteEditorStops() {
+      var list = document.getElementById("route-stops-list");
+      var emptyEl = document.getElementById("route-stops-empty");
+      list.innerHTML = "";
+
+      emptyEl.classList.toggle("hidden", routeEditorStopIds.length > 0);
+
+      routeEditorStopIds.forEach(function(sid) {
+        var stop = getCustomStop(sid);
+        if (!stop) return;
+        var row = document.createElement("div");
+        row.className = "route-stop-row";
+        row.dataset.stopId = sid;
+        row.innerHTML =
+          '<span class="drag-handle" title="Drag to reorder" aria-hidden="true">≡</span>' +
+          '<div style="flex:1;min-width:0"><div class="route-stop-label">' + escapeHtml(stop.label) + '</div>' +
+          '<div class="route-stop-preview">' + escapeHtml(stop.openers[0] || "") + '</div></div>' +
+          '<button type="button" class="line-remove-btn" aria-label="Remove stop">&#215;</button>';
+        row.querySelector(".line-remove-btn").onclick = (function(id) {
+          return function() { removeStopFromRoute(id); };
+        })(sid);
+        list.appendChild(row);
+      });
+    }
+
+    function removeStopFromRoute(sid) {
+      routeEditorStopIds = routeEditorStopIds.filter(function(id) { return id !== sid; });
+      renderRouteEditorStops();
+      renderStopPicker();
+      if (routeEditorSortable) { routeEditorSortable.destroy(); }
+      initRouteEditorSortable();
+    }
+
+    function renderStopPicker() {
+      var picker = document.getElementById("stop-picker");
+      var emptyEl = document.getElementById("stop-picker-empty");
+      var tabMineBtn = document.getElementById("picker-tab-mine");
+      var tabLibBtn = document.getElementById("picker-tab-library");
+
+      if (tabMineBtn) tabMineBtn.classList.toggle("active", pickerTab === "mine");
+      if (tabLibBtn) tabLibBtn.classList.toggle("active", pickerTab === "library");
+
+      picker.innerHTML = "";
+
+      var stops = state.customStops.filter(function(s) {
+        return pickerTab === "library" ? isBuiltinRep(s) : !isBuiltinRep(s);
+      });
+
+      if (!stops.length) {
+        emptyEl.classList.remove("hidden");
+        emptyEl.innerHTML = pickerTab === "mine"
+          ? 'No custom reps yet — <button type="button" class="add-line-btn" id="go-create-stop-btn" style="font-size:0.82rem;">create a rep first</button>'
+          : "No built-in reps found.";
+        if (pickerTab === "mine") {
+          var btn = emptyEl.querySelector("#go-create-stop-btn");
+          if (btn) btn.onclick = function() { showStopEditor(null); };
+        }
+        return;
+      }
+      emptyEl.classList.add("hidden");
+
+      stops.forEach(function(stop) {
+        var alreadyAdded = routeEditorStopIds.indexOf(stop.id) >= 0;
+        var item = document.createElement("div");
+        item.className = "stop-picker-item" + (alreadyAdded ? " already-added" : "");
+        item.innerHTML =
+          '<div style="min-width:0"><div class="stop-picker-item-label">' + escapeHtml(stop.label) + '</div>' +
+          '<div class="stop-picker-item-preview">' + escapeHtml(stop.openers[0] || "No openers") + '</div></div>' +
+          '<span class="stop-picker-add-icon">+</span>';
+        if (!alreadyAdded) {
+          item.onclick = (function(sid) { return function() { addStopToRoute(sid); }; })(stop.id);
+        }
+        picker.appendChild(item);
+      });
+    }
+
+    function addStopToRoute(sid) {
+      if (routeEditorStopIds.indexOf(sid) < 0) {
+        routeEditorStopIds.push(sid);
+        renderRouteEditorStops();
+        renderStopPicker();
+        if (routeEditorSortable) { routeEditorSortable.destroy(); }
+        initRouteEditorSortable();
+      }
+    }
+
+    function saveRoute() {
+      var name = document.getElementById("route-name-input").value.trim();
+      if (!name) { showToast("Please enter a route name"); return; }
+
+      var wasEditing = !!editingRouteId;
+      var savedId = editingRouteId;
+
+      if (editingRouteId) {
+        var route = state.customRoutes.find(function(r) { return r.id === editingRouteId; });
+        if (route) { route.name = name; route.stopIds = routeEditorStopIds.slice(); }
+      } else {
+        var newRoute = { id: "route_" + Date.now(), name: name, stopIds: routeEditorStopIds.slice() };
+        state.customRoutes.push(newRoute);
+        savedId = newRoute.id;
+      }
+      saveState();
+      showToast(wasEditing ? "Route updated" : "Route created");
+
+      if (wasEditing && savedId) {
+        showStops(null, true, savedId);
+      } else {
+        showHome();
+      }
+    }
+
+    function promptDeleteRoute() {
+      if (!editingRouteId) return;
+      var route = getCustomRoute(editingRouteId);
+      var name = route ? route.name : "this route";
+      openConfirmSheet({
+        title: 'Delete "' + name + '"?',
+        message: "This route and today's progress for it will be removed. This can't be undone.",
+        confirmLabel: "Delete Route",
+        onConfirm: deleteRoute
+      });
+    }
+
+    function deleteRoute() {
+      if (!editingRouteId) return;
+      var rid = editingRouteId;
+      state.customRoutes = state.customRoutes.filter(function(r) { return r.id !== rid; });
+      delete state.todayReps[rid];
+      state.weekCompletions = state.weekCompletions.filter(function(c) { return c.routeId !== rid; });
+      saveState();
+      closeConfirmSheet();
+      showToast("Route deleted");
+      showHome();
+    }
+
+
+    /* —— Event listeners —— */
+
     document.getElementById("stops-back").onclick = showHome;
-    document.getElementById("reset-today-btn").onclick = () => resetTodayRouteProgress(currentRouteIdx);
-    document.getElementById("detail-back").onclick = () => showStops(currentRouteIdx);
+    document.getElementById("stops-menu-btn").onclick = openStopsMenu;
+    document.getElementById("start-route-btn").onclick = startRoute;
+    document.getElementById("menu-edit-route").onclick = function() {
+      closeStopsMenu();
+      showRouteEditor(currentCustomRouteId);
+    };
+    document.getElementById("menu-reset-today").onclick = function() {
+      closeStopsMenu();
+      resetTodayRouteProgress(currentRouteIdx);
+    };
+    document.getElementById("menu-cancel").onclick = closeStopsMenu;
+    document.getElementById("stops-action-sheet").onclick = function(e) {
+      if (e.target === this) closeStopsMenu();
+    };
+    document.getElementById("confirm-action-sheet").onclick = function(e) {
+      if (e.target === this) closeConfirmSheet();
+    };
+    document.getElementById("confirm-sheet-cancel").onclick = closeConfirmSheet;
+    document.getElementById("confirm-sheet-confirm").onclick = function() {
+      if (confirmSheetCallback) confirmSheetCallback();
+    };
+    document.getElementById("detail-back").onclick = function() {
+      if (currentRouteIsCustom) showStops(null, true, currentCustomRouteId);
+      else showStops(currentRouteIdx, false);
+    };
 
-    document.getElementById("rep-btn").onclick = () => handleRepToggle();
+    document.getElementById("rep-btn").onclick = function() { handleRepToggle(); };
+    document.getElementById("prev-btn").onclick = function() { goToPrevStop(false); };
+    document.getElementById("next-btn").onclick = function() { goToNextStop(false); };
 
-    document.getElementById("prev-btn").onclick = () => goToPrevStop(false);
-    document.getElementById("next-btn").onclick = () => goToNextStop(false);
+    document.getElementById("my-stops-row").onclick = function() { showLibrary("mine"); };
+    document.getElementById("library-back").onclick = showHome;
+    document.getElementById("new-stop-btn").onclick = function() { showStopEditor(null); };
+    document.getElementById("tab-mine").onclick = function() { libraryTab = "mine"; renderLibrary(); };
+    document.getElementById("tab-builtin").onclick = function() { libraryTab = "builtin"; renderLibrary(); };
+
+    document.getElementById("stop-editor-back").onclick = function() { showLibrary(); };
+    document.getElementById("stop-editor-save").onclick = saveStop;
+    document.getElementById("stop-editor-delete").onclick = confirmDeleteStop;
+    document.getElementById("add-opener-btn").onclick = function() { addLineInput("openers-list"); };
+    document.getElementById("add-followup-btn").onclick = function() { addLineInput("followups-list"); };
+
+    document.getElementById("route-editor-back").onclick = function() {
+      if (currentRouteIsCustom && currentCustomRouteId && editingRouteId === currentCustomRouteId) {
+        showStops(null, true, currentCustomRouteId);
+      } else {
+        showHome();
+      }
+    };
+    document.getElementById("route-editor-save").onclick = saveRoute;
+    document.getElementById("route-editor-delete").onclick = promptDeleteRoute;
+    document.getElementById("go-create-stop-btn").onclick = function() { showStopEditor(null); };
 
     initDetailSwipe();
     showHome();
