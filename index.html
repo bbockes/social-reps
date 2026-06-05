@@ -838,8 +838,45 @@
     .my-stops-row-left { display: flex; align-items: center; gap: 10px; }
     .my-stops-icon { font-size: 1.1rem; }
     .my-stops-label { font-size: 0.95rem; font-weight: 600; color: var(--text); }
-    .my-stops-count { font-size: 0.8rem; color: var(--muted); font-weight: 500; }
     .my-stops-arrow { font-size: 1.25rem; color: var(--accent); font-weight: 400; }
+
+    .category-card {
+      background: var(--card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      padding: 0.9rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    .category-card:active { transform: scale(0.98); }
+
+    .category-icon {
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      border-radius: 10px;
+      background: var(--accent-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+
+    .category-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .category-meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
 
     /* —— New route button —— */
     .new-route-btn {
@@ -1032,6 +1069,12 @@
     }
     #route-editor-screen .stop-picker-item:last-child { border-bottom: none; }
     #route-editor-screen .stop-picker-item:active { background: rgba(0, 0, 0, 0.04); }
+
+    #route-editor-screen .stop-picker-item.picker-back-row {
+      border-bottom: 0.5px solid rgba(60, 60, 67, 0.18);
+      cursor: pointer;
+    }
+    #route-editor-screen .stop-picker-item.picker-back-row:active { background: rgba(0, 0, 0, 0.04); }
 
     /* —— Editor screens (stop editor, route editor) —— */
     .editor-body {
@@ -1358,7 +1401,6 @@
             <span class="my-stops-icon">🗂</span>
             <div>
               <div class="my-stops-label">My Reps</div>
-              <div class="my-stops-count" id="my-stops-count">0 reps</div>
             </div>
           </div>
           <span class="my-stops-arrow">›</span>
@@ -1464,8 +1506,8 @@
         </div>
       </div>
       <div class="tab-bar">
-        <button type="button" class="tab-btn active" id="tab-mine">Mine</button>
-        <button type="button" class="tab-btn" id="tab-builtin">Library</button>
+        <button type="button" class="tab-btn active" id="tab-builtin">Library</button>
+        <button type="button" class="tab-btn" id="tab-custom">Custom</button>
       </div>
       <div id="library-list" class="stop-list"></div>
       <div id="library-empty" class="list-empty hidden">
@@ -1534,8 +1576,8 @@
           <div class="ios-section-label">Add Reps</div>
           <div class="ios-group">
             <div class="tab-bar">
-              <button type="button" class="tab-btn active" id="picker-tab-mine">Mine</button>
-              <button type="button" class="tab-btn" id="picker-tab-library">Library</button>
+              <button type="button" class="tab-btn active" id="picker-tab-library">Library</button>
+              <button type="button" class="tab-btn" id="picker-tab-custom">Custom</button>
             </div>
             <div id="stop-picker" class="stop-picker"></div>
             <div id="stop-picker-empty" class="ios-empty-hint hidden">
@@ -1717,6 +1759,43 @@
         followups: ["You from around here?", "Thanks — appreciate it.", "Which would you pick?"]
       }
     ];
+
+    const LIBRARY_CATEGORIES = [
+      { id: "street", name: "Out & about", icon: "🚶" },
+      { id: "transit", name: "Transit", icon: "🚇" },
+      { id: "grocery", name: "Grocery store", icon: "🛒" },
+      { id: "cafe", name: "Cafe", icon: "☕" },
+      { id: "shopping", name: "Shopping", icon: "🛍" }
+    ];
+
+    const STARTER_CATEGORY_BY_ID = {
+      starter_dog_walker: "street",
+      starter_person_on_street: "street",
+      starter_walking_alongside: "street",
+      starter_person_walking_by: "street",
+      starter_people_walking_past: "street",
+      starter_stoplight: "street",
+      starter_outside_store: "street",
+      starter_metro_question: "transit",
+      starter_bus_stop: "transit",
+      starter_store_clerk: "grocery",
+      starter_person_stocking_shelves: "grocery",
+      starter_person_at_shelf: "grocery",
+      starter_person_in_aisle: "grocery",
+      starter_person_by_fruit: "grocery",
+      starter_person_entering_store: "grocery",
+      starter_person_exiting_store: "grocery",
+      starter_free_sample: "grocery",
+      starter_checkout_line: "grocery",
+      starter_barista: "cafe",
+      starter_cafe_in_line: "cafe",
+      starter_cafe_waiting: "cafe",
+      starter_cafe_reading: "cafe",
+      starter_bookstore: "shopping",
+      starter_clothing_store: "shopping",
+      starter_furniture_store: "shopping",
+      starter_ice_cream: "shopping"
+    };
 
     const routes = [];
 
@@ -1961,9 +2040,6 @@
       saveState();
 
       document.getElementById("week-route-count").textContent = todayRouteCount();
-
-      var repCount = state.customStops.length;
-      document.getElementById("my-stops-count").textContent = repCount + " rep" + (repCount !== 1 ? "s" : "");
 
       var list = document.getElementById("route-list");
       list.innerHTML = "";
@@ -2450,14 +2526,36 @@
 
     /* —— Library screen —— */
 
-    var libraryTab = "mine";
+    var libraryTab = "builtin";
+    var libraryCategoryId = null;
 
     function isBuiltinRep(stop) {
       return state.seededRepIds && state.seededRepIds.indexOf(stop.id) >= 0;
     }
 
+    function getRepCategory(stop) {
+      if (stop.category) return stop.category;
+      return STARTER_CATEGORY_BY_ID[stop.id] || "street";
+    }
+
+    function getBuiltinReps() {
+      return state.customStops.filter(isBuiltinRep);
+    }
+
+    function getRepsInCategory(categoryId) {
+      return getBuiltinReps().filter(function(s) { return getRepCategory(s) === categoryId; });
+    }
+
+    function getLibraryCategoryMeta(categoryId) {
+      var cat = LIBRARY_CATEGORIES.find(function(c) { return c.id === categoryId; });
+      return cat || { id: categoryId, name: "Reps", icon: "🗂" };
+    }
+
     function showLibrary(tab) {
-      if (tab) libraryTab = tab;
+      if (tab) {
+        libraryTab = tab;
+        if (tab === "builtin") libraryCategoryId = null;
+      }
       renderLibrary();
       showScreen("library");
     }
@@ -2467,23 +2565,55 @@
       var emptyEl = document.getElementById("library-empty");
       var newBtn = document.getElementById("new-stop-btn");
       var tabBuiltin = document.getElementById("tab-builtin");
-      var tabMine = document.getElementById("tab-mine");
+      var tabCustom = document.getElementById("tab-custom");
+      var backBtn = document.getElementById("library-back");
 
-      tabMine.classList.toggle("active", libraryTab === "mine");
+      tabCustom.classList.toggle("active", libraryTab === "custom");
       tabBuiltin.classList.toggle("active", libraryTab === "builtin");
 
       newBtn.classList.toggle("hidden", libraryTab === "builtin");
+      backBtn.textContent = libraryTab === "builtin" && libraryCategoryId ? "← Library" : "← Routes";
 
       listEl.innerHTML = "";
 
-      var stops = state.customStops.filter(function(s) {
-        return libraryTab === "builtin" ? isBuiltinRep(s) : !isBuiltinRep(s);
-      });
+      if (libraryTab === "builtin" && !libraryCategoryId) {
+        emptyEl.classList.add("hidden");
+        LIBRARY_CATEGORIES.forEach(function(cat) {
+          var count = getRepsInCategory(cat.id).length;
+          if (!count) return;
+          var card = document.createElement("div");
+          card.className = "category-card";
+          card.innerHTML =
+            '<span class="category-icon">' + cat.icon + '</span>' +
+            '<div style="flex:1;min-width:0"><div class="category-name">' + escapeHtml(cat.name) + '</div>' +
+            '<div class="category-meta">' + count + ' rep' + (count !== 1 ? 's' : '') + '</div></div>' +
+            '<span class="stop-chevron">›</span>';
+          card.onclick = (function(cid) {
+            return function() {
+              libraryCategoryId = cid;
+              renderLibrary();
+            };
+          })(cat.id);
+          listEl.appendChild(card);
+        });
+        if (!listEl.children.length) {
+          emptyEl.classList.remove("hidden");
+          emptyEl.innerHTML = "<p>No built-in reps found.</p>";
+        }
+        return;
+      }
+
+      var stops;
+      if (libraryTab === "builtin") {
+        stops = getRepsInCategory(libraryCategoryId);
+      } else {
+        stops = state.customStops.filter(function(s) { return !isBuiltinRep(s); });
+      }
 
       if (!stops.length) {
         emptyEl.classList.remove("hidden");
         emptyEl.innerHTML = libraryTab === "builtin"
-          ? "<p>No built-in reps found.</p>"
+          ? "<p>No reps in this category.</p>"
           : "<p>No custom reps yet.</p><p>Tap <strong>+ New Rep</strong> to create your first interaction card.</p>";
         return;
       }
@@ -2576,7 +2706,13 @@
       saveState();
       showToast(editingStopId ? "Rep updated" : "Rep created");
       var wasBuiltin = editingStopId && state.seededRepIds && state.seededRepIds.indexOf(editingStopId) >= 0;
-      libraryTab = wasBuiltin ? "builtin" : "mine";
+      if (wasBuiltin) {
+        libraryTab = "builtin";
+        libraryCategoryId = getRepCategory({ id: editingStopId });
+      } else {
+        libraryTab = "custom";
+        libraryCategoryId = null;
+      }
       showLibrary();
     }
 
@@ -2598,7 +2734,8 @@
     var editingRouteId = null;
     var routeEditorStopIds = [];
     var routeEditorSortable = null;
-    var pickerTab = "mine";
+    var pickerTab = "library";
+    var pickerCategoryId = null;
 
     function showRouteEditor(routeId) {
       editingRouteId = routeId || null;
@@ -2610,13 +2747,22 @@
 
       routeEditorStopIds = route ? route.stopIds.slice() : [];
 
-      pickerTab = "mine";
+      pickerTab = "library";
+      pickerCategoryId = null;
       renderRouteEditorStops();
       renderStopPicker();
       showScreen("route-editor");
 
-      document.getElementById("picker-tab-mine").onclick = function() { pickerTab = "mine"; renderStopPicker(); };
-      document.getElementById("picker-tab-library").onclick = function() { pickerTab = "library"; renderStopPicker(); };
+      document.getElementById("picker-tab-custom").onclick = function() {
+        pickerTab = "custom";
+        pickerCategoryId = null;
+        renderStopPicker();
+      };
+      document.getElementById("picker-tab-library").onclick = function() {
+        pickerTab = "library";
+        pickerCategoryId = null;
+        renderStopPicker();
+      };
 
       if (routeEditorSortable) { routeEditorSortable.destroy(); routeEditorSortable = null; }
       initRouteEditorSortable();
@@ -2672,30 +2818,70 @@
     function renderStopPicker() {
       var picker = document.getElementById("stop-picker");
       var emptyEl = document.getElementById("stop-picker-empty");
-      var tabMineBtn = document.getElementById("picker-tab-mine");
+      var tabCustomBtn = document.getElementById("picker-tab-custom");
       var tabLibBtn = document.getElementById("picker-tab-library");
 
-      if (tabMineBtn) tabMineBtn.classList.toggle("active", pickerTab === "mine");
+      if (tabCustomBtn) tabCustomBtn.classList.toggle("active", pickerTab === "custom");
       if (tabLibBtn) tabLibBtn.classList.toggle("active", pickerTab === "library");
 
       picker.innerHTML = "";
 
-      var stops = state.customStops.filter(function(s) {
-        return pickerTab === "library" ? isBuiltinRep(s) : !isBuiltinRep(s);
-      });
+      if (pickerTab === "library" && !pickerCategoryId) {
+        emptyEl.classList.add("hidden");
+        LIBRARY_CATEGORIES.forEach(function(cat) {
+          var count = getRepsInCategory(cat.id).length;
+          if (!count) return;
+          var item = document.createElement("div");
+          item.className = "stop-picker-item picker-category-item";
+          item.innerHTML =
+            '<div style="min-width:0;display:flex;align-items:center;gap:10px">' +
+            '<span class="category-icon" style="width:28px;height:28px;min-width:28px;font-size:0.95rem">' + cat.icon + '</span>' +
+            '<div><div class="stop-picker-item-label">' + escapeHtml(cat.name) + '</div>' +
+            '<div class="stop-picker-item-preview">' + count + ' rep' + (count !== 1 ? 's' : '') + '</div></div></div>' +
+            '<span class="stop-picker-add-icon" style="font-size:1.1rem;color:#c7c7cc">›</span>';
+          item.onclick = (function(cid) {
+            return function() {
+              pickerCategoryId = cid;
+              renderStopPicker();
+            };
+          })(cat.id);
+          picker.appendChild(item);
+        });
+        return;
+      }
+
+      var stops;
+      if (pickerTab === "library") {
+        stops = getRepsInCategory(pickerCategoryId);
+      } else {
+        stops = state.customStops.filter(function(s) { return !isBuiltinRep(s); });
+      }
 
       if (!stops.length) {
         emptyEl.classList.remove("hidden");
-        emptyEl.innerHTML = pickerTab === "mine"
+        emptyEl.innerHTML = pickerTab === "custom"
           ? 'No custom reps yet — <button type="button" class="add-line-btn" id="go-create-stop-btn" style="font-size:0.82rem;">create a rep first</button>'
-          : "No built-in reps found.";
-        if (pickerTab === "mine") {
+          : "No reps in this category.";
+        if (pickerTab === "custom") {
           var btn = emptyEl.querySelector("#go-create-stop-btn");
           if (btn) btn.onclick = function() { showStopEditor(null); };
         }
         return;
       }
       emptyEl.classList.add("hidden");
+
+      if (pickerTab === "library" && pickerCategoryId) {
+        var backRow = document.createElement("div");
+        backRow.className = "stop-picker-item picker-back-row";
+        var catMeta = getLibraryCategoryMeta(pickerCategoryId);
+        backRow.innerHTML =
+          '<div class="stop-picker-item-label" style="color:var(--accent);font-weight:600">← ' + escapeHtml(catMeta.name) + '</div>';
+        backRow.onclick = function() {
+          pickerCategoryId = null;
+          renderStopPicker();
+        };
+        picker.appendChild(backRow);
+      }
 
       stops.forEach(function(stop) {
         var alreadyAdded = routeEditorStopIds.indexOf(stop.id) >= 0;
@@ -2805,11 +2991,26 @@
     document.getElementById("prev-btn").onclick = function() { goToPrevStop(false); };
     document.getElementById("next-btn").onclick = function() { goToNextStop(false); };
 
-    document.getElementById("my-stops-row").onclick = function() { showLibrary("mine"); };
-    document.getElementById("library-back").onclick = showHome;
+    document.getElementById("my-stops-row").onclick = function() { showLibrary("builtin"); };
+    document.getElementById("library-back").onclick = function() {
+      if (libraryTab === "builtin" && libraryCategoryId) {
+        libraryCategoryId = null;
+        renderLibrary();
+      } else {
+        showHome();
+      }
+    };
     document.getElementById("new-stop-btn").onclick = function() { showStopEditor(null); };
-    document.getElementById("tab-mine").onclick = function() { libraryTab = "mine"; renderLibrary(); };
-    document.getElementById("tab-builtin").onclick = function() { libraryTab = "builtin"; renderLibrary(); };
+    document.getElementById("tab-custom").onclick = function() {
+      libraryTab = "custom";
+      libraryCategoryId = null;
+      renderLibrary();
+    };
+    document.getElementById("tab-builtin").onclick = function() {
+      libraryTab = "builtin";
+      libraryCategoryId = null;
+      renderLibrary();
+    };
 
     document.getElementById("stop-editor-back").onclick = function() { showLibrary(); };
     document.getElementById("stop-editor-save").onclick = saveStop;
