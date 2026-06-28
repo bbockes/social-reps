@@ -47,26 +47,22 @@ On first sign-in, any reps/routes already in your browser are copied to your acc
 
 ## GitHub Pages
 
-Push to `main`. With Pages enabled (GitHub Actions workflow in this repo), the app is served from `index.html` at your repo's Pages URL.
+Push to `main`. The site is live at your repo's Pages URL.
 
-The deploy workflow injects secrets into `app-config.js` at build time. If secrets are missing, the deploy **fails**.
+**Supabase config on the live site:** `app-config.js` in the repo contains your Supabase URL and anon (publishable) key. That key is meant to be public in the browser — it is restricted by Row Level Security, not by hiding it.
 
-1. Add secrets (Settings → Secrets and variables → Actions, or Environments → github-pages):
-   - `SUPABASE_URL` — e.g. `https://xxxx.supabase.co` (include `https://`)
-   - `SUPABASE_ANON_KEY` — the anon / publishable key string only
+If you use **Deploy from a branch** (Settings → Pages → Source → main / root), that committed `app-config.js` is what gets published. Push any change to `app-config.js` to update the live site.
 
-2. Set Pages source to **GitHub Actions**: Settings → Pages → Build and deployment → Source → **GitHub Actions** (not “Deploy from a branch”). If this is wrong, deploys succeed but the live site keeps serving placeholder `app-config.js` and the profile icon stays hidden.
+If you switch Pages source to **GitHub Actions** instead, the deploy workflow can inject secrets at build time (Settings → Environments → github-pages → `SUPABASE_URL`, `SUPABASE_ANON_KEY`). Either approach works.
 
-3. Push to `main` or re-run **Deploy GitHub Pages** in the Actions tab.
+Check: `https://bbockes.github.io/social-reps/app-config.js` should show your Supabase URL — not `YOUR_PROJECT`. Then hard-refresh the app and the profile icon should appear.
 
-Check: `https://bbockes.github.io/social-reps/app-config.js` should show JSON with your URL — not `YOUR_PROJECT`.
-
-Locally, gitignored `config.js` or `config.local.js` overrides `app-config.js`.
+**Locally**, gitignored `config.js` or `config.local.js` overrides `app-config.js`. Those files are never pushed — that is normal.
 
 ## Files
 
 - `index.html` — the app (HTML, CSS, JS)
 - `js/cloud.js` — Supabase auth & sync
-- `app-config.js` — Supabase config (placeholders in git; CI overwrites on deploy)
+- `app-config.js` — Supabase config for the live site (and local fallback)
 - `config.example.js` — copy to `config.js` or `config.local.js` for local cloud setup
 - `supabase/schema.sql` — database tables & row-level security
