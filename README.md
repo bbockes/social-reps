@@ -26,15 +26,18 @@ Sign in to save your profile, custom reps, routes, and daily progress across dev
 3. In **Authentication → Providers**, enable **Email** (enabled by default).
 4. In **Project Settings → API**, copy your **Project URL** and **anon public** key.
 
-### 2. Configure the app
+### 2. Configure locally
 
 ```bash
-cp config.example.js config.local.js
+cp config.example.js config.js
+# or: cp config.example.js config.local.js
 ```
 
-Edit `config.local.js` with your Supabase URL and anon key.
+Edit that file with your Supabase URL and anon key.
 
-`config.local.js` is gitignored — do not commit it. Do not use a placeholder `config.js`; it used to load after `app-config.js` and could wipe valid settings.
+**Important:** `config.js` and `config.local.js` are gitignored on purpose — they must **never** be committed or pushed. That is normal. Pushing code does not deploy your Supabase keys; the live site reads them from GitHub Actions secrets (below).
+
+Reload the app locally. You should see the profile icon in the top-right of the home screen.
 
 ### 3. Run and sign up
 
@@ -46,24 +49,24 @@ On first sign-in, any reps/routes already in your browser are copied to your acc
 
 Push to `main`. With Pages enabled (GitHub Actions workflow in this repo), the app is served from `index.html` at your repo's Pages URL.
 
-For cloud sync on Pages, add two secrets (either location works):
+The deploy workflow injects secrets into `app-config.js` at build time. If secrets are missing, the deploy **fails**.
 
-- **Settings → Secrets and variables → Actions → Repository secrets**, or
-- **Settings → Environments → github-pages → Environment secrets**
+1. Add secrets (Settings → Secrets and variables → Actions, or Environments → github-pages):
+   - `SUPABASE_URL` — e.g. `https://xxxx.supabase.co` (include `https://`)
+   - `SUPABASE_ANON_KEY` — the anon / publishable key string only
 
-Secret names (exact):
+2. Set Pages source to **GitHub Actions**: Settings → Pages → Build and deployment → Source → **GitHub Actions** (not “Deploy from a branch”). If this is wrong, deploys succeed but the live site keeps serving placeholder `app-config.js` and the profile icon stays hidden.
 
-- `SUPABASE_URL` — just the URL, e.g. `https://xxxx.supabase.co`
-- `SUPABASE_ANON_KEY` — just the key string, e.g. `eyJ...` or `sb_publishable_...` (do **not** paste the whole `supabaseAnonKey: "..."` line from `config.local.js`)
+3. Push to `main` or re-run **Deploy GitHub Pages** in the Actions tab.
 
-The deploy workflow writes these into `app-config.js` at build time. If secrets are missing, the deploy **fails** instead of publishing placeholders. After adding secrets, re-run **Deploy GitHub Pages** (Actions tab → workflow → Run workflow) or push to `main`. Then check `https://<user>.github.io/social-reps/app-config.js` — it should be JSON with your URL and key, not `YOUR_PROJECT`.
+Check: `https://bbockes.github.io/social-reps/app-config.js` should show JSON with your URL — not `YOUR_PROJECT`.
 
-Locally, gitignored `config.local.js` overrides `app-config.js` when present.
+Locally, gitignored `config.js` or `config.local.js` overrides `app-config.js`.
 
 ## Files
 
 - `index.html` — the app (HTML, CSS, JS)
 - `js/cloud.js` — Supabase auth & sync
 - `app-config.js` — Supabase config (placeholders in git; CI overwrites on deploy)
-- `config.example.js` — copy to `config.js` for local cloud setup
+- `config.example.js` — copy to `config.js` or `config.local.js` for local cloud setup
 - `supabase/schema.sql` — database tables & row-level security

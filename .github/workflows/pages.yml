@@ -38,10 +38,25 @@ jobs:
             echo "::error::app-config.js was not generated with real Supabase values."
             exit 1
           fi
-          echo "Generated app-config.js for deploy."
+          echo "Generated app-config.js ($(wc -c < app-config.js) bytes)"
+          head -3 app-config.js
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify live app-config.js
+        run: |
+          sleep 15
+          URL="${{ steps.deployment.outputs.page_url }}app-config.js"
+          echo "Checking $URL"
+          BODY=$(curl -fsSL "$URL")
+          echo "$BODY"
+          if echo "$BODY" | grep -q "YOUR_PROJECT"; then
+            echo "::error::Live site is still serving placeholder app-config.js."
+            echo "Go to repo Settings → Pages → Build and deployment → Source"
+            echo "and set it to GitHub Actions (not Deploy from a branch)."
+            exit 1
+          fi
+          echo "Live app-config.js looks good."
