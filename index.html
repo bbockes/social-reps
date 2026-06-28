@@ -8,6 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/cloud.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -54,8 +57,52 @@
 
     /* —— Home —— */
     .home-hero {
-      padding: 2rem 1.25rem 1rem;
+      padding: 1.15rem 1.25rem 1rem;
     }
+
+    .home-hero-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .home-hero-copy {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .profile-btn {
+      flex-shrink: 0;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--muted);
+      box-shadow: var(--shadow);
+      font-family: inherit;
+      padding: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 0.15rem;
+      transition: transform 0.15s ease, color 0.15s ease;
+    }
+
+    .profile-btn svg {
+      width: 21px;
+      height: 21px;
+      display: block;
+    }
+
+    .profile-btn:active {
+      transform: scale(0.94);
+      color: var(--text);
+    }
+
+    .profile-btn.hidden { display: none; }
 
     .home-hero h1 {
       font-size: 1.85rem;
@@ -265,6 +312,39 @@
     }
 
     .back-btn:active { opacity: 0.6; }
+
+    .back-btn-pill {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.42rem 0.85rem 0.42rem 0.7rem;
+      box-shadow: var(--shadow);
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    .back-btn-pill:active {
+      opacity: 1;
+      transform: scale(0.97);
+      background: var(--bg);
+    }
+
+    .back-btn-icon {
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    .back-btn-label {
+      line-height: 1;
+    }
+
+    #library-screen .back-btn-pill {
+      margin-bottom: 1.15rem;
+      font-size: 0.95rem;
+    }
+
+    #library-screen .back-btn-icon {
+      font-size: 1em;
+    }
 
     .screen-title {
       font-size: 1.5rem;
@@ -1372,19 +1452,217 @@
       font-size: 0.85rem;
       color: var(--accent);
     }
+
+    .library-breadcrumbs {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.2rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      line-height: 1.35;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .library-breadcrumbs.hidden { display: none; }
+
+    .breadcrumb-sep {
+      font-weight: 600;
+      user-select: none;
+    }
+
+    .library-tab-row {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.6rem;
+      margin: 0 1rem 1rem;
+    }
+
+    .library-tab-row .tab-bar {
+      width: 100%;
+      margin: 0;
+    }
+
+    /* —— Auth —— */
+    #auth-screen {
+      background: #f2f2f7;
+      min-height: 100dvh;
+    }
+
+    .auth-screen-wrap {
+      max-width: 430px;
+      margin: 0 auto;
+      padding: 0.85rem 1rem calc(1rem + var(--safe-bottom));
+    }
+
+    .auth-header {
+      margin-bottom: 1.1rem;
+    }
+
+    .auth-title {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1.1;
+      color: var(--text);
+    }
+
+    .auth-subtitle {
+      margin-top: 0.4rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+      font-weight: 500;
+      line-height: 1.45;
+    }
+
+    .auth-tabs {
+      display: flex;
+      background: rgba(118, 118, 128, 0.12);
+      border-radius: 10px;
+      padding: 3px;
+      margin-bottom: 1rem;
+    }
+
+    .auth-tab {
+      flex: 1;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      padding: 0.48rem 0.5rem;
+      cursor: pointer;
+    }
+
+    .auth-tab.active {
+      background: var(--card);
+      color: var(--text);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .auth-field-group {
+      background: var(--card);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+
+    .auth-input {
+      display: block;
+      width: 100%;
+      border: none;
+      border-bottom: 0.5px solid rgba(60, 60, 67, 0.18);
+      padding: 0.88rem 1rem;
+      font-family: inherit;
+      font-size: 1.05rem;
+      font-weight: 400;
+      color: var(--text);
+      background: transparent;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .auth-input:last-child { border-bottom: none; }
+    .auth-input::placeholder { color: #c7c7cc; }
+
+    .auth-submit {
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      padding: 0.92rem 1rem;
+      font-family: inherit;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #fff;
+      background: var(--accent);
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    .auth-submit:active { transform: scale(0.98); }
+    .auth-submit:disabled { opacity: 0.55; cursor: default; transform: none; }
+
+    .auth-error {
+      margin-top: 0.85rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #c0392b;
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .auth-note {
+      margin-top: 0.85rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.45;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
-  <h1 class="sr-only">Social reps — conversation practice for Arlington routes</h1>
+  <h1 class="sr-only">Social reps — conversation practice for everyday routes</h1>
 
   <div class="app">
     <div id="toast" class="toast" aria-live="polite"></div>
 
+    <!-- Auth -->
+    <div id="auth-screen" class="hidden">
+      <div class="auth-screen-wrap">
+        <div class="auth-header">
+          <h2 class="auth-title">Social reps</h2>
+          <p class="auth-subtitle">Save your reps and routes across devices.</p>
+        </div>
+        <div class="auth-tabs">
+          <button type="button" class="auth-tab active" id="auth-tab-signin">Sign in</button>
+          <button type="button" class="auth-tab" id="auth-tab-signup">Sign up</button>
+        </div>
+        <form id="auth-form">
+          <div class="auth-field-group">
+            <input type="email" id="auth-email" class="auth-input" placeholder="Email" autocomplete="email" required />
+            <input type="password" id="auth-password" class="auth-input" placeholder="Password" autocomplete="current-password" minlength="6" required />
+          </div>
+          <button type="submit" class="auth-submit" id="auth-submit">Sign in</button>
+        </form>
+        <div class="auth-error hidden" id="auth-error"></div>
+        <div class="auth-note hidden" id="auth-note"></div>
+      </div>
+    </div>
+
+    <div id="profile-action-sheet" class="action-sheet-backdrop hidden" aria-hidden="true">
+      <div class="action-sheet-wrap">
+        <div class="action-sheet-panel">
+          <div class="action-sheet-header">
+            <div class="action-sheet-title">Account</div>
+            <div class="action-sheet-message" id="profile-email"></div>
+          </div>
+          <button type="button" class="action-sheet-item destructive" id="profile-signout">Sign out</button>
+        </div>
+        <div class="action-sheet-panel action-sheet-panel-cancel">
+          <button type="button" class="action-sheet-item cancel" id="profile-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Home -->
     <div id="home-screen">
       <div class="home-hero">
-        <h1>En route</h1>
-        <p>Log interactions as you go about your day.</p>
+        <div class="home-hero-top">
+          <div class="home-hero-copy">
+            <h1>En route</h1>
+            <p>Log interactions as you go about your day.</p>
+          </div>
+          <button type="button" class="profile-btn hidden" id="profile-btn" aria-label="Account">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="8" r="3.5"></circle>
+              <path d="M5.5 19.5c0-3.5 2.9-6 6.5-6s6.5 2.5 6.5 6"></path>
+            </svg>
+          </button>
+        </div>
       </div>
 
       <div class="week-stat-card">
@@ -1499,15 +1777,21 @@
     <!-- Library (My Reps) -->
     <div id="library-screen" class="hidden">
       <div class="screen-header">
-        <button type="button" class="back-btn" id="library-back">← Routes</button>
+        <button type="button" class="back-btn back-btn-pill" id="library-back" aria-label="Back">
+          <span class="back-btn-icon" aria-hidden="true">←</span>
+          <span class="back-btn-label" id="library-back-label">Back</span>
+        </button>
         <div class="stops-header-row">
           <div class="screen-title">Reps</div>
           <button type="button" class="new-item-btn" id="new-stop-btn">+ New Rep</button>
         </div>
       </div>
-      <div class="tab-bar">
-        <button type="button" class="tab-btn active" id="tab-builtin">Library</button>
-        <button type="button" class="tab-btn" id="tab-custom">Custom</button>
+      <div class="library-tab-row">
+        <div class="tab-bar">
+          <button type="button" class="tab-btn active" id="tab-builtin">Library</button>
+          <button type="button" class="tab-btn" id="tab-custom">Custom</button>
+        </div>
+        <nav class="library-breadcrumbs hidden" id="library-breadcrumbs" aria-label="Library location"></nav>
       </div>
       <div id="library-list" class="stop-list"></div>
       <div id="library-empty" class="list-empty hidden">
@@ -1532,14 +1816,14 @@
         </div>
         <div class="editor-section">
           <div class="editor-section-header">
-            <span class="editor-section-title">Openers</span>
+            <span class="editor-section-title">Suggested openers</span>
             <button type="button" class="add-line-btn" id="add-opener-btn">+ Add</button>
           </div>
           <div id="openers-list" class="line-inputs-list"></div>
         </div>
         <div class="editor-section">
           <div class="editor-section-header">
-            <span class="editor-section-title">Follow-ups</span>
+            <span class="editor-section-title">Suggested follow-ups</span>
             <button type="button" class="add-line-btn" id="add-followup-btn">+ Add</button>
           </div>
           <div id="followups-list" class="line-inputs-list"></div>
@@ -1595,9 +1879,10 @@
 
   <script>
     const STORAGE_KEY = "dailyReps";
+    const STARTER_REPS_VERSION = 3;
 
     const STARTER_REPS = [
-      // — General street —
+      // — Out & about (5) —
       {
         id: "starter_dog_walker",
         label: "Dog walker",
@@ -1607,47 +1892,59 @@
       {
         id: "starter_person_on_street",
         label: "Person on the street",
-        openers: ["Is there a good coffee shop nearby?", "Do you know this area well?", "Hey — am I headed toward downtown?"],
-        followups: ["You from around here?", "Thanks — that's helpful.", "Appreciate it."]
-      },
-      {
-        id: "starter_walking_alongside",
-        label: "Person walking alongside you",
-        openers: ["Long day?", "Nice out today.", "Headed somewhere fun?"],
-        followups: ["You walk this route a lot?", "Work around here?", "Anywhere good to eat nearby?"]
-      },
-      {
-        id: "starter_person_walking_by",
-        label: "Person walking by",
-        openers: ["Is there a good coffee spot around here?", "Know a good place to eat nearby?", "Any good spots around here?"],
-        followups: ["You from around here?", "Thanks — appreciate it.", "Which would you pick?"]
-      },
-      {
-        id: "starter_people_walking_past",
-        label: "People walking past",
-        openers: ["Nice day for a walk.", "Is it always this busy here?", "You headed anywhere fun?"],
-        followups: ["You know this area well?", "You from around here?", "Anywhere good to eat nearby?"]
+        openers: ["Nice day for a walk.", "Long day?", "Know a good coffee spot around here?"],
+        followups: ["You from around here?", "You walk this area much?", "Anywhere good to eat nearby?"]
       },
       {
         id: "starter_stoplight",
         label: "Person at a stoplight",
-        openers: ["Long day?", "Headed somewhere good?", "Nice day out."],
+        openers: ["Long day?", "Headed somewhere good?", "Weather's nice today."],
         followups: ["What do you do around here?", "You from around here?", "Enjoy the rest of your day."]
       },
-      // — Transit —
+      {
+        id: "starter_outside_store",
+        label: "Person outside a store",
+        openers: ["Know a good place to eat around here?", "Any good spots around here?", "Is this area mostly tourists?"],
+        followups: ["You from around here?", "Thanks — appreciate it.", "Which would you pick?"]
+      },
+      {
+        id: "starter_park_bench",
+        label: "Person on a bench",
+        openers: ["Good spot to sit.", "Taking a break too?", "Great day to be out."],
+        followups: ["You come here often?", "Live around here?", "Best time to be out here?"]
+      },
+      // — Transit (5) —
       {
         id: "starter_metro_question",
         label: "Metro question",
-        openers: ["Is the metro right up here?", "Which line is this?", "Does this go toward DC?"],
+        openers: ["Is the subway right up here?", "Which line is this?", "Does this go to [X]?"],
         followups: ["You from around here?", "How long have you lived here?", "Thanks — appreciate it."]
       },
       {
         id: "starter_bus_stop",
         label: "Person at a bus stop",
-        openers: ["Where does this bus go?", "Does this bus go to Clarendon?", "How often does it come?"],
+        openers: ["Where does this bus go?", "Does this bus go to [X]?", "How often does it come?"],
         followups: ["You from around here?", "You ride this often?", "Thanks — appreciate it."]
       },
-      // — Grocery / store —
+      {
+        id: "starter_on_the_train",
+        label: "Person on the train",
+        openers: ["Does this stop at [X]?", "How many stops till [X]?", "Is this the right train?"],
+        followups: ["You commute on this line?", "How long have you lived here?", "Thanks — appreciate it."]
+      },
+      {
+        id: "starter_train_platform",
+        label: "Person on the platform",
+        openers: ["Which side for [X]?", "How often does this come?", "Is the next one crowded?"],
+        followups: ["You ride this every day?", "Is it usually on time?", "Thanks — that's helpful."]
+      },
+      {
+        id: "starter_transit_station",
+        label: "Person at a station entrance",
+        openers: ["Is the subway down those stairs?", "Which way to the [X] line?", "Am I in the right station?"],
+        followups: ["You know this station well?", "Fastest way to get to [X]?", "Appreciate it."]
+      },
+      // — Grocery store (5) —
       {
         id: "starter_store_clerk",
         label: "Store clerk",
@@ -1661,34 +1958,10 @@
         followups: ["Do you like working here?", "How long have you worked here?", "You always work this section?"]
       },
       {
-        id: "starter_person_at_shelf",
-        label: "Person at the shelf",
-        openers: ["Is that any good?", "What's good on this aisle?", "Have you tried this one before?"],
-        followups: ["Which would you pick?", "What else is good on this aisle?", "Do you come here a lot?"]
-      },
-      {
         id: "starter_person_in_aisle",
         label: "Person in the aisle",
-        openers: ["Have you tried this one?", "Which of these is better?", "What would you grab here?"],
-        followups: ["Which would you pick?", "What else is good in this aisle?", "Do you come here often?"]
-      },
-      {
-        id: "starter_person_by_fruit",
-        label: "Person by the produce",
-        openers: ["Which of these is in season?", "Are these ripe?", "What would you grab here?"],
-        followups: ["What else should I be getting?", "How do you tell if they're ripe?", "Do you shop here often?"]
-      },
-      {
-        id: "starter_person_entering_store",
-        label: "Person entering the store",
-        openers: ["Think it'll be busy right now?", "How's the line looking?", "Worth going in right now?"],
-        followups: ["How long was the line?", "Was checkout bad?", "Still worth it?"]
-      },
-      {
-        id: "starter_person_exiting_store",
-        label: "Person exiting the store",
-        openers: ["Busy in there?", "How long was the line?", "Worth the trip?"],
-        followups: ["How was checkout?", "Was the line worth it?", "Would you come back at this hour?"]
+        openers: ["Is that any good?", "What's worth getting on this aisle?", "Which of these would you grab?"],
+        followups: ["Which would you pick?", "Do you shop here often?", "Anything else I should try?"]
       },
       {
         id: "starter_free_sample",
@@ -1702,7 +1975,7 @@
         openers: ["Always this busy at this hour?", "Find everything you needed?", "Had any of these?"],
         followups: ["You shop here often?", "What do you think of this place?", "Any hidden gems in this store?"]
       },
-      // — Café —
+      // — Cafe (5) —
       {
         id: "starter_barista",
         label: "Barista",
@@ -1727,7 +2000,13 @@
         openers: ["Good book?", "What are you reading?", "What are you working on?"],
         followups: ["Would you recommend it?", "Good spot to get things done?", "Do you come here to work often?"]
       },
-      // — Retail / other —
+      {
+        id: "starter_cafe_outside",
+        label: "Person at an outdoor table",
+        openers: ["Good spot out here?", "Is it always this busy outside?", "What did you get?"],
+        followups: ["What's good here?", "Do you work nearby?", "Worth sitting outside today?"]
+      },
+      // — Shopping (5) —
       {
         id: "starter_bookstore",
         label: "Person in bookstore",
@@ -1753,10 +2032,10 @@
         followups: ["Is it good?", "What else should I try?", "Do you come here often?"]
       },
       {
-        id: "starter_outside_store",
-        label: "Person outside a store",
-        openers: ["Know a good place to eat around here?", "Any good spots around here?", "Is this area mostly tourists?"],
-        followups: ["You from around here?", "Thanks — appreciate it.", "Which would you pick?"]
+        id: "starter_shop_employee",
+        label: "Store employee",
+        openers: ["Do you carry this in another size?", "Do you guys have [X]?", "What's popular right now?"],
+        followups: ["Would you recommend it?", "Do you work here full-time?", "Anything else I should look at?"]
       }
     ];
 
@@ -1771,30 +2050,29 @@
     const STARTER_CATEGORY_BY_ID = {
       starter_dog_walker: "street",
       starter_person_on_street: "street",
-      starter_walking_alongside: "street",
-      starter_person_walking_by: "street",
-      starter_people_walking_past: "street",
       starter_stoplight: "street",
       starter_outside_store: "street",
+      starter_park_bench: "street",
       starter_metro_question: "transit",
       starter_bus_stop: "transit",
+      starter_on_the_train: "transit",
+      starter_train_platform: "transit",
+      starter_transit_station: "transit",
       starter_store_clerk: "grocery",
       starter_person_stocking_shelves: "grocery",
-      starter_person_at_shelf: "grocery",
       starter_person_in_aisle: "grocery",
-      starter_person_by_fruit: "grocery",
-      starter_person_entering_store: "grocery",
-      starter_person_exiting_store: "grocery",
       starter_free_sample: "grocery",
       starter_checkout_line: "grocery",
       starter_barista: "cafe",
       starter_cafe_in_line: "cafe",
       starter_cafe_waiting: "cafe",
       starter_cafe_reading: "cafe",
+      starter_cafe_outside: "cafe",
       starter_bookstore: "shopping",
       starter_clothing_store: "shopping",
       starter_furniture_store: "shopping",
-      starter_ice_cream: "shopping"
+      starter_ice_cream: "shopping",
+      starter_shop_employee: "shopping"
     };
 
     const routes = [];
@@ -1804,6 +2082,8 @@
     let currentRouteIsCustom = false;
     let currentCustomRouteId = null;
     let state = loadState();
+    let skipCloudPush = false;
+    let authMode = "signin";
 
     function todayStr() {
       const d = new Date();
@@ -1855,7 +2135,8 @@
         customStops: Array.isArray(s.customStops) ? s.customStops : [],
         customRoutes: Array.isArray(s.customRoutes) ? s.customRoutes : [],
         starterRepsSeeded: !!s.starterRepsSeeded,
-        seededRepIds: Array.isArray(s.seededRepIds) ? s.seededRepIds : []
+        seededRepIds: Array.isArray(s.seededRepIds) ? s.seededRepIds : [],
+        starterRepsVersion: s.starterRepsVersion || 0
       };
 
       // Add any starters whose IDs haven't been seeded yet (runs on every load, safe to add new starters later)
@@ -1871,6 +2152,8 @@
       if (newSeeds.length) out.seededRepIds = out.seededRepIds.concat(newSeeds);
       out.starterRepsSeeded = true;
 
+      migrateStarterReps(out);
+
       if (out.weekKey !== weekKey()) {
         out.weekKey = weekKey();
         out.weekCompletions = [];
@@ -1882,8 +2165,181 @@
       return out;
     }
 
+    function migrateStarterReps(out) {
+      if (out.starterRepsVersion >= STARTER_REPS_VERSION) return;
+
+      var validIds = new Set(STARTER_REPS.map(function(r) { return r.id; }));
+      var removedSet = new Set(out.seededRepIds.filter(function(id) { return !validIds.has(id); }));
+
+      out.customStops = out.customStops.filter(function(s) {
+        return !removedSet.has(s.id) && (!out.seededRepIds.includes(s.id) || validIds.has(s.id));
+      });
+      out.seededRepIds = out.seededRepIds.filter(function(id) { return validIds.has(id); });
+      out.customRoutes.forEach(function(route) {
+        route.stopIds = route.stopIds.filter(function(id) { return !removedSet.has(id); });
+      });
+
+      var existingIds = new Set(out.customStops.map(function(s) { return s.id; }));
+      STARTER_REPS.forEach(function(template) {
+        var stop = out.customStops.find(function(s) { return s.id === template.id; });
+        if (stop) {
+          stop.label = template.label;
+          stop.openers = template.openers.slice();
+          stop.followups = template.followups.slice();
+        } else if (!existingIds.has(template.id)) {
+          out.customStops.push({
+            id: template.id,
+            label: template.label,
+            openers: template.openers.slice(),
+            followups: template.followups.slice()
+          });
+        }
+        if (out.seededRepIds.indexOf(template.id) < 0) out.seededRepIds.push(template.id);
+      });
+
+      out.starterRepsVersion = STARTER_REPS_VERSION;
+    }
+
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      if (!skipCloudPush && window.SocialRepsCloud && SocialRepsCloud.isReady()) {
+        SocialRepsCloud.queueSave(state);
+        showSyncIndicator("Saving…");
+      }
+    }
+
+    function saveStateLocalOnly() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function newRepId() {
+      if (window.SocialRepsCloud && SocialRepsCloud.isReady()) return SocialRepsCloud.newId("stop_");
+      return "stop_" + Date.now();
+    }
+
+    function newRouteId() {
+      if (window.SocialRepsCloud && SocialRepsCloud.isReady()) return SocialRepsCloud.newId("route_");
+      return "route_" + Date.now();
+    }
+
+    function showSyncIndicator(msg, isError) {
+      if (!window.SocialRepsCloud || !SocialRepsCloud.isReady()) return;
+      if (isError) showToast(msg);
+    }
+
+    function updateAccountUI() {
+      var btn = document.getElementById("profile-btn");
+      if (!btn) return;
+      var ready = window.SocialRepsCloud && SocialRepsCloud.isReady();
+      btn.classList.toggle("hidden", !ready);
+    }
+
+    function openProfileSheet() {
+      var user = window.SocialRepsCloud && SocialRepsCloud.getUser();
+      document.getElementById("profile-email").textContent = user ? user.email : "";
+      var sheet = document.getElementById("profile-action-sheet");
+      sheet.classList.remove("hidden");
+      sheet.setAttribute("aria-hidden", "false");
+      requestAnimationFrame(function() { sheet.classList.add("show"); });
+    }
+
+    function closeProfileSheet() {
+      var sheet = document.getElementById("profile-action-sheet");
+      sheet.classList.remove("show");
+      sheet.setAttribute("aria-hidden", "true");
+      setTimeout(function() {
+        if (!sheet.classList.contains("show")) sheet.classList.add("hidden");
+      }, 320);
+    }
+
+    function applyCloudState(cloudState) {
+      skipCloudPush = true;
+      state = normalizeState(Object.assign({}, defaultState(), cloudState));
+      saveStateLocalOnly();
+      skipCloudPush = false;
+      updateAccountUI();
+    }
+
+    function showAuth() {
+      showScreen("auth");
+    }
+
+    function setAuthMode(mode) {
+      authMode = mode;
+      document.getElementById("auth-tab-signin").classList.toggle("active", mode === "signin");
+      document.getElementById("auth-tab-signup").classList.toggle("active", mode === "signup");
+      document.getElementById("auth-submit").textContent = mode === "signup" ? "Create account" : "Sign in";
+      document.getElementById("auth-password").autocomplete = mode === "signup" ? "new-password" : "current-password";
+      document.getElementById("auth-error").classList.add("hidden");
+      document.getElementById("auth-note").classList.add("hidden");
+    }
+
+    function setAuthError(msg) {
+      var el = document.getElementById("auth-error");
+      el.textContent = msg || "";
+      el.classList.toggle("hidden", !msg);
+    }
+
+    function setAuthNote(msg) {
+      var el = document.getElementById("auth-note");
+      el.textContent = msg || "";
+      el.classList.toggle("hidden", !msg);
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      if (!window.SocialRepsCloud || !SocialRepsCloud.isConfigured()) return;
+      setAuthError("");
+      setAuthNote("");
+      var email = document.getElementById("auth-email").value.trim();
+      var password = document.getElementById("auth-password").value;
+      var btn = document.getElementById("auth-submit");
+      btn.disabled = true;
+      try {
+        if (authMode === "signup") {
+          var signUpResult = await SocialRepsCloud.signUp(email, password);
+          if (signUpResult.needsConfirmation) {
+            setAuthNote("Check your email to confirm your account, then sign in.");
+            setAuthMode("signin");
+          } else {
+            showToast("Account created");
+          }
+        } else {
+          await SocialRepsCloud.signIn(email, password);
+          showToast("Signed in");
+        }
+      } catch (err) {
+        setAuthError(err.message || "Something went wrong. Try again.");
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function handleSignOut() {
+      if (!window.SocialRepsCloud || !SocialRepsCloud.isReady()) return;
+      if (!confirm("Sign out? Your data stays saved to your account.")) return;
+      try {
+        await SocialRepsCloud.signOut();
+        showToast("Signed out");
+      } catch (err) {
+        showToast(err.message || "Could not sign out");
+      }
+    }
+
+    function onCloudAuthChange(user, cloudState) {
+      updateAccountUI();
+      if (user && cloudState) {
+        applyCloudState(cloudState);
+        renderHome();
+        showHome();
+        showSyncIndicator("Saved to your account");
+        return;
+      }
+      if (window.SocialRepsCloud && SocialRepsCloud.isConfigured()) {
+        showAuth();
+        return;
+      }
+      showHome();
     }
 
     /* —— Custom stop / route helpers —— */
@@ -2029,7 +2485,8 @@
     function showScreen(name) {
       closeStopsMenu();
       closeConfirmSheet();
-      ["home", "stops", "detail", "library", "stop-editor", "route-editor"].forEach(function(s) {
+      closeProfileSheet();
+      ["home", "stops", "detail", "library", "stop-editor", "route-editor", "auth"].forEach(function(s) {
         document.getElementById(s + "-screen").classList.toggle("hidden", name !== s);
       });
       window.scrollTo(0, 0);
@@ -2037,7 +2494,8 @@
 
     function renderHome() {
       state = normalizeState(state);
-      saveState();
+      saveStateLocalOnly();
+      updateAccountUI();
 
       document.getElementById("week-route-count").textContent = todayRouteCount();
 
@@ -2313,16 +2771,16 @@
       var body = document.getElementById("detail-body");
       if (stop.openers && stop.openers.length) {
         body.innerHTML =
-          '<div class="line-card"><div class="line-label">Openers</div><div class="line-hint">Pick any — mix with any follow-up</div>' +
+          '<div class="line-card"><div class="line-label">Suggested openers</div><div class="line-hint">Pick any — mix with any follow-up</div>' +
           formatScriptOptions(stop.openers) +
-          '</div><div class="arrow-row">↓ then</div><div class="line-card"><div class="line-label">Follow-ups</div><div class="line-hint">Pick any</div>' +
+          '</div><div class="arrow-row">↓ then</div><div class="line-card"><div class="line-label">Suggested follow-ups</div><div class="line-hint">Pick any</div>' +
           formatScriptOptions(stop.followups) +
           "</div>";
       } else {
         body.innerHTML =
-          '<div class="line-card"><div class="line-label">Opener</div><div class="line-text">' +
+          '<div class="line-card"><div class="line-label">Suggested opener</div><div class="line-text">' +
           formatScriptTwoLines(stop.opener) +
-          '</div></div><div class="arrow-row">↓ then</div><div class="line-card"><div class="line-label">Follow up</div><div class="line-text">' +
+          '</div></div><div class="arrow-row">↓ then</div><div class="line-card"><div class="line-label">Suggested follow-up</div><div class="line-text">' +
           formatScriptTwoLines(stop.followup) +
           "</div></div>";
       }
@@ -2560,19 +3018,47 @@
       showScreen("library");
     }
 
+    function renderLibraryBreadcrumbs() {
+      var nav = document.getElementById("library-breadcrumbs");
+      nav.innerHTML = "";
+
+      var parts = ["Reps"];
+      var show = !!libraryCategoryId && libraryTab === "builtin";
+
+      if (show) {
+        parts.push(getLibraryCategoryMeta(libraryCategoryId).name);
+      }
+
+      nav.classList.toggle("hidden", !show);
+
+      if (!show) return;
+
+      parts.forEach(function(part, i) {
+        if (i > 0) {
+          var sep = document.createElement("span");
+          sep.className = "breadcrumb-sep";
+          sep.setAttribute("aria-hidden", "true");
+          sep.textContent = "›";
+          nav.appendChild(sep);
+        }
+        var span = document.createElement("span");
+        span.textContent = part;
+        nav.appendChild(span);
+      });
+    }
+
     function renderLibrary() {
       var listEl = document.getElementById("library-list");
       var emptyEl = document.getElementById("library-empty");
       var newBtn = document.getElementById("new-stop-btn");
       var tabBuiltin = document.getElementById("tab-builtin");
       var tabCustom = document.getElementById("tab-custom");
-      var backBtn = document.getElementById("library-back");
 
       tabCustom.classList.toggle("active", libraryTab === "custom");
       tabBuiltin.classList.toggle("active", libraryTab === "builtin");
 
       newBtn.classList.toggle("hidden", libraryTab === "builtin");
-      backBtn.textContent = libraryTab === "builtin" && libraryCategoryId ? "← Library" : "← Routes";
+      renderLibraryBreadcrumbs();
 
       listEl.innerHTML = "";
 
@@ -2624,8 +3110,7 @@
         card.className = "stop-card";
         card.innerHTML =
           '<div class="stop-card-edit-dot">✎</div>' +
-          '<div style="flex:1;min-width:0"><div class="stop-label">' + escapeHtml(stop.label) + '</div>' +
-          '<div class="stop-preview">' + escapeHtml(stop.openers[0] || "No openers yet") + '</div></div>' +
+          '<div style="flex:1;min-width:0"><div class="stop-label">' + escapeHtml(stop.label) + '</div></div>' +
           '<span class="stop-chevron">›</span>';
         card.onclick = (function(sid) { return function() { showStopEditor(sid); }; })(stop.id);
         listEl.appendChild(card);
@@ -2701,7 +3186,7 @@
         var stop = state.customStops.find(function(s) { return s.id === editingStopId; });
         if (stop) { stop.label = label; stop.openers = openers; stop.followups = followups; }
       } else {
-        state.customStops.push({ id: "stop_" + Date.now(), label: label, openers: openers, followups: followups });
+        state.customStops.push({ id: newRepId(), label: label, openers: openers, followups: followups });
       }
       saveState();
       showToast(editingStopId ? "Rep updated" : "Rep created");
@@ -2919,7 +3404,7 @@
         var route = state.customRoutes.find(function(r) { return r.id === editingRouteId; });
         if (route) { route.name = name; route.stopIds = routeEditorStopIds.slice(); }
       } else {
-        var newRoute = { id: "route_" + Date.now(), name: name, stopIds: routeEditorStopIds.slice() };
+        var newRoute = { id: newRouteId(), name: name, stopIds: routeEditorStopIds.slice() };
         state.customRoutes.push(newRoute);
         savedId = newRoute.id;
       }
@@ -3030,7 +3515,41 @@
     document.getElementById("go-create-stop-btn").onclick = function() { showStopEditor(null); };
 
     initDetailSwipe();
-    showHome();
+
+    setAuthMode("signin");
+    document.getElementById("auth-form").addEventListener("submit", handleAuthSubmit);
+    document.getElementById("auth-tab-signin").onclick = function() { setAuthMode("signin"); };
+    document.getElementById("auth-tab-signup").onclick = function() { setAuthMode("signup"); };
+    document.getElementById("profile-btn").onclick = openProfileSheet;
+    document.getElementById("profile-cancel").onclick = closeProfileSheet;
+    document.getElementById("profile-signout").onclick = function() {
+      closeProfileSheet();
+      handleSignOut();
+    };
+    document.getElementById("profile-action-sheet").onclick = function(e) {
+      if (e.target === this) closeProfileSheet();
+    };
+
+    if (window.SocialRepsCloud) {
+      SocialRepsCloud.init({
+        starterReps: STARTER_REPS,
+        starterCategoryById: STARTER_CATEGORY_BY_ID,
+        starterRepsVersion: STARTER_REPS_VERSION,
+        getLocalState: function() { return loadState(); },
+        onAuthStateChange: onCloudAuthChange,
+        onSync: function(status) {
+          if (status === "saved") showSyncIndicator("Saved to your account");
+          if (status === "error") showSyncIndicator("Sync failed — retrying on next save", true);
+        }
+      }).then(function(configured) {
+        if (!configured) showHome();
+      }).catch(function(err) {
+        console.error(err);
+        showHome();
+      });
+    } else {
+      showHome();
+    }
   </script>
 </body>
 </html>
