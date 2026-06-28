@@ -51,11 +51,14 @@ For cloud sync on Pages, add two secrets on the **github-pages** environment (Se
 - `SUPABASE_URL` — just the URL, e.g. `https://xxxx.supabase.co`
 - `SUPABASE_ANON_KEY` — just the key string, e.g. `eyJ...` or `sb_publishable_...` (do **not** paste the whole `supabaseAnonKey: "..."` line from `config.js`)
 
-The deploy workflow writes these into `config.js` at build time. After pushing to `main` or re-running **Deploy GitHub Pages**, check `https://<user>.github.io/social-reps/config.js` — it should be valid JavaScript with your URL and key.
+The deploy workflow writes these into `app-config.js` at build time. After pushing to `main` or re-running **Deploy GitHub Pages**, check `https://<user>.github.io/social-reps/app-config.js` — it should be valid JavaScript with your URL and key.
+
+Locally, gitignored `config.js` still overrides `app-config.js` if present.
 
 ## Files
 
 - `index.html` — the app (HTML, CSS, JS)
 - `js/cloud.js` — Supabase auth & sync
-- `config.example.js` — copy to `config.js` for cloud setup
+- `app-config.js` — Supabase config (placeholders in git; CI overwrites on deploy)
+- `config.example.js` — copy to `config.js` for local cloud setup
 - `supabase/schema.sql` — database tables & row-level security
