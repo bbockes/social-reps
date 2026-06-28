@@ -46,7 +46,12 @@ On first sign-in, any reps/routes already in your browser are copied to your acc
 
 Push to `main`. With Pages enabled (GitHub Actions workflow in this repo), the app is served from `index.html` at your repo's Pages URL.
 
-For cloud sync on Pages, add `config.js` locally before deploy **or** inject config via your deployment pipeline (keep the anon key out of public repos if you prefer environment-based deploys).
+For cloud sync on Pages, add two repository secrets (Settings → Secrets and variables → Actions):
+
+- `SUPABASE_URL` — your project URL (e.g. `https://xxxx.supabase.co`)
+- `SUPABASE_ANON_KEY` — your anon public key
+
+The deploy workflow writes these into `config.js` at build time. After pushing to `main`, the profile icon and sign-in will work on your Pages URL.
 
 ## Files
 
