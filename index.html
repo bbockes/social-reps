@@ -2376,11 +2376,19 @@
       if (isError) showToast(msg);
     }
 
+    function hasCloudConfig() {
+      var config = window.APP_CONFIG || {};
+      var url = config.supabaseUrl ? String(config.supabaseUrl).trim() : "";
+      var key = config.supabaseAnonKey ? String(config.supabaseAnonKey).trim() : "";
+      url = url.replace(/^https:\/(?!\/)/i, "https://");
+      return !!(url && key && url.indexOf("YOUR_PROJECT") < 0);
+    }
+
     function updateAccountUI() {
       var btn = document.getElementById("profile-btn");
       if (!btn) return;
-      var configured = window.SocialRepsCloud && SocialRepsCloud.isConfigured();
-      var ready = configured && SocialRepsCloud.isReady();
+      var configured = hasCloudConfig() || (window.SocialRepsCloud && SocialRepsCloud.isConfigured());
+      var ready = window.SocialRepsCloud && SocialRepsCloud.isReady();
       btn.classList.toggle("hidden", !configured);
       btn.setAttribute("aria-label", ready ? "Account" : "Sign in");
     }
@@ -3682,6 +3690,8 @@
       if (e.target === this) closeProfileSheet();
     };
 
+    updateAccountUI();
+
     if (window.SocialRepsCloud) {
       SocialRepsCloud.init({
         starterReps: STARTER_REPS,
@@ -3694,9 +3704,11 @@
           if (status === "error") showSyncIndicator("Sync failed — retrying on next save", true);
         }
       }).then(function(configured) {
+        updateAccountUI();
         if (!configured) showHome();
       }).catch(function(err) {
         console.error(err);
+        updateAccountUI();
         showHome();
       });
     } else {

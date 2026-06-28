@@ -38,13 +38,27 @@ jobs:
               return v.trim();
             }
 
+            function normalizeSupabaseUrl(url) {
+              let v = clean(url, "supabaseUrl");
+              v = v.replace(/^https:\/(?!\/)/i, "https://");
+              if (v && !/^https?:\/\//i.test(v)) {
+                v = "https://" + v.replace(/^\/+/, "");
+              }
+              return v;
+            }
+
             const config = {
-              supabaseUrl: clean(process.env.SUPABASE_URL, "supabaseUrl"),
+              supabaseUrl: normalizeSupabaseUrl(process.env.SUPABASE_URL),
               supabaseAnonKey: clean(process.env.SUPABASE_ANON_KEY, "supabaseAnonKey")
             };
 
             if (!config.supabaseUrl || !config.supabaseAnonKey) {
               console.error("Supabase secrets are empty after cleanup.");
+              process.exit(1);
+            }
+
+            if (!/^https:\/\/.+/i.test(config.supabaseUrl)) {
+              console.error("Invalid SUPABASE_URL:", config.supabaseUrl);
               process.exit(1);
             }
 
