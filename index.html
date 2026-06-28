@@ -1784,10 +1784,13 @@
       <div class="action-sheet-wrap">
         <div class="action-sheet-panel">
           <div class="action-sheet-header">
-            <div class="action-sheet-title">Account</div>
+            <div class="action-sheet-title" id="profile-sheet-title">Account</div>
             <div class="action-sheet-message" id="profile-email"></div>
+            <div class="action-sheet-message hidden" id="profile-guest-message">Sign in to sync your reps and routes across devices.</div>
           </div>
-          <button type="button" class="action-sheet-item destructive" id="profile-signout">Sign out</button>
+          <button type="button" class="action-sheet-item" id="profile-signin">Sign in</button>
+          <button type="button" class="action-sheet-item hidden" id="profile-signup">Create account</button>
+          <button type="button" class="action-sheet-item destructive hidden" id="profile-signout">Sign out</button>
         </div>
         <div class="action-sheet-panel action-sheet-panel-cancel">
           <button type="button" class="action-sheet-item cancel" id="profile-cancel">Cancel</button>
@@ -2376,34 +2379,41 @@
       if (isError) showToast(msg);
     }
 
-    function hasCloudConfig() {
-      var config = window.APP_CONFIG || {};
-      var url = config.supabaseUrl ? String(config.supabaseUrl).trim() : "";
-      var key = config.supabaseAnonKey ? String(config.supabaseAnonKey).trim() : "";
-      url = url.replace(/^https:\/(?!\/)/i, "https://");
-      return !!(url && key && url.indexOf("YOUR_PROJECT") < 0);
-    }
-
     function updateAccountUI() {
       var btn = document.getElementById("profile-btn");
       if (!btn) return;
-      var configured = hasCloudConfig() || (window.SocialRepsCloud && SocialRepsCloud.isConfigured());
-      var ready = window.SocialRepsCloud && SocialRepsCloud.isReady();
+      var configured = window.SocialRepsCloud && SocialRepsCloud.isConfigured();
+      var user = configured && SocialRepsCloud.getUser();
       btn.classList.toggle("hidden", !configured);
-      btn.setAttribute("aria-label", ready ? "Account" : "Sign in");
+      btn.setAttribute("aria-label", user ? "Account" : "Sign in");
+      updateProfileSheetState();
+    }
+
+    function updateProfileSheetState() {
+      var user = window.SocialRepsCloud && SocialRepsCloud.getUser();
+      var signedIn = !!user;
+      document.getElementById("profile-sheet-title").textContent = signedIn ? "Account" : "Sign in";
+      document.getElementById("profile-email").textContent = signedIn ? (user.email || "") : "";
+      document.getElementById("profile-email").classList.toggle("hidden", !signedIn);
+      document.getElementById("profile-guest-message").classList.toggle("hidden", signedIn);
+      document.getElementById("profile-signin").classList.toggle("hidden", signedIn);
+      document.getElementById("profile-signup").classList.toggle("hidden", signedIn);
+      document.getElementById("profile-signout").classList.toggle("hidden", !signedIn);
     }
 
     function openProfileSheet() {
-      if (window.SocialRepsCloud && SocialRepsCloud.isConfigured() && !SocialRepsCloud.isReady()) {
-        showAuth();
-        return;
-      }
-      var user = window.SocialRepsCloud && SocialRepsCloud.getUser();
-      document.getElementById("profile-email").textContent = user ? user.email : "";
+      if (!window.SocialRepsCloud || !SocialRepsCloud.isConfigured()) return;
+      updateProfileSheetState();
       var sheet = document.getElementById("profile-action-sheet");
       sheet.classList.remove("hidden");
       sheet.setAttribute("aria-hidden", "false");
       requestAnimationFrame(function() { sheet.classList.add("show"); });
+    }
+
+    function openAuthFromProfile(mode) {
+      closeProfileSheet();
+      setAuthMode(mode || "signin");
+      showAuth();
     }
 
     function closeProfileSheet() {
@@ -3681,6 +3691,8 @@
     document.getElementById("auth-tab-signup").onclick = function() { setAuthMode("signup"); };
     document.getElementById("auth-skip").onclick = showHome;
     document.getElementById("profile-btn").onclick = openProfileSheet;
+    document.getElementById("profile-signin").onclick = function() { openAuthFromProfile("signin"); };
+    document.getElementById("profile-signup").onclick = function() { openAuthFromProfile("signup"); };
     document.getElementById("profile-cancel").onclick = closeProfileSheet;
     document.getElementById("profile-signout").onclick = function() {
       closeProfileSheet();
@@ -3689,8 +3701,6 @@
     document.getElementById("profile-action-sheet").onclick = function(e) {
       if (e.target === this) closeProfileSheet();
     };
-
-    updateAccountUI();
 
     if (window.SocialRepsCloud) {
       SocialRepsCloud.init({
@@ -3704,11 +3714,9 @@
           if (status === "error") showSyncIndicator("Sync failed — retrying on next save", true);
         }
       }).then(function(configured) {
-        updateAccountUI();
         if (!configured) showHome();
       }).catch(function(err) {
         console.error(err);
-        updateAccountUI();
         showHome();
       });
     } else {

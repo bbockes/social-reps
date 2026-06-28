@@ -14,23 +14,6 @@
   var starterCategoryById = {};
   var starterRepsVersion = 1;
 
-  function normalizeSupabaseUrl(url) {
-    var value = String(url || "").trim();
-    value = value.replace(/^supabaseUrl:\s*/i, "");
-    value = value.replace(/^["']|["']$/g, "").trim();
-    value = value.replace(/^https:\/(?!\/)/i, "https://");
-    if (value && !/^https?:\/\//i.test(value)) {
-      value = "https://" + value.replace(/^\/+/, "");
-    }
-    return value;
-  }
-
-  function normalizeSupabaseKey(key) {
-    var value = String(key || "").trim();
-    value = value.replace(/^supabaseAnonKey:\s*/i, "");
-    return value.replace(/^["']|["']$/g, "").trim();
-  }
-
   function isConfigured() {
     return configured;
   }
@@ -410,12 +393,6 @@
     starterRepsVersion = options.starterRepsVersion || 1;
 
     var config = global.APP_CONFIG || {};
-    config = {
-      supabaseUrl: normalizeSupabaseUrl(config.supabaseUrl),
-      supabaseAnonKey: normalizeSupabaseKey(config.supabaseAnonKey)
-    };
-    global.APP_CONFIG = config;
-
     if (!config.supabaseUrl || !config.supabaseAnonKey || config.supabaseUrl.indexOf("YOUR_PROJECT") >= 0) {
       configured = false;
       if (callbacks.onAuthStateChange) callbacks.onAuthStateChange(null, null);
