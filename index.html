@@ -134,21 +134,21 @@
 
     .profile-btn.hidden { display: none; }
 
+    .home-hero-tagline {
+      margin-top: 0.45rem;
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      line-height: 1.35;
+      white-space: nowrap;
+    }
+
     .home-hero h1 {
       font-size: 2rem;
       font-weight: 700;
       letter-spacing: -0.04em;
       line-height: 1.08;
       color: var(--text);
-    }
-
-    .home-hero p {
-      margin-top: 0.45rem;
-      font-size: 0.94rem;
-      color: var(--text-secondary);
-      font-weight: 500;
-      line-height: 1.45;
-      max-width: 26ch;
     }
 
     .week-stat-card {
@@ -1804,7 +1804,6 @@
         <div class="home-hero-top">
           <div class="home-hero-copy">
             <h1>En route</h1>
-            <p>Log interactions as you go about your day.</p>
           </div>
           <button type="button" class="profile-btn hidden" id="profile-btn" aria-label="Account">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1813,6 +1812,7 @@
             </svg>
           </button>
         </div>
+        <p class="home-hero-tagline">Log interactions as you go about your day.</p>
       </div>
 
       <div class="week-stat-card">
