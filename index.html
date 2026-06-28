@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="app-config.js"></script>
-  <script src="config.js"></script>
+  <script src="config.local.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/cloud.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -2383,9 +2383,10 @@
     function updateAccountUI() {
       var btn = document.getElementById("profile-btn");
       if (!btn) return;
-      var configured = window.SocialRepsCloud && SocialRepsCloud.isConfigured();
-      var user = configured && SocialRepsCloud.getUser();
-      btn.classList.toggle("hidden", !configured);
+      var cloud = window.SocialRepsCloud;
+      var showProfile = cloud && (cloud.hasConfig() || cloud.isConfigured());
+      var user = cloud && cloud.isConfigured() && cloud.getUser();
+      btn.classList.toggle("hidden", !showProfile);
       btn.setAttribute("aria-label", user ? "Account" : "Sign in");
       updateProfileSheetState();
     }
@@ -2403,7 +2404,7 @@
     }
 
     function openProfileSheet() {
-      if (!window.SocialRepsCloud || !SocialRepsCloud.isConfigured()) return;
+      if (!window.SocialRepsCloud || !SocialRepsCloud.hasConfig()) return;
       updateProfileSheetState();
       var sheet = document.getElementById("profile-action-sheet");
       sheet.classList.remove("hidden");
@@ -3703,6 +3704,8 @@
       if (e.target === this) closeProfileSheet();
     };
 
+    updateAccountUI();
+
     if (window.SocialRepsCloud) {
       SocialRepsCloud.init({
         starterReps: STARTER_REPS,
@@ -3715,9 +3718,11 @@
           if (status === "error") showSyncIndicator("Sync failed — retrying on next save", true);
         }
       }).then(function(configured) {
+        updateAccountUI();
         if (!configured) showHome();
       }).catch(function(err) {
         console.error(err);
+        updateAccountUI();
         showHome();
       });
     } else {

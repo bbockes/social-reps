@@ -14,6 +14,36 @@
   var starterCategoryById = {};
   var starterRepsVersion = 1;
 
+  function normalizeSupabaseUrl(raw) {
+    var url = String(raw || "").trim();
+    url = url.replace(/[,;\s]+$/g, "");
+    url = url.replace(/^["']|["']$/g, "");
+    url = url.replace(/^https:\/(?!\/)/i, "https://");
+    url = url.replace(/^http:\/(?!\/)/i, "http://");
+    return url;
+  }
+
+  function isValidHttpUrl(url) {
+    try {
+      var parsed = new URL(url);
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  function hasConfig() {
+    var config = global.APP_CONFIG || {};
+    var supabaseUrl = normalizeSupabaseUrl(config.supabaseUrl);
+    var supabaseAnonKey = String(config.supabaseAnonKey || "").trim();
+    return !!(
+      supabaseUrl &&
+      supabaseAnonKey &&
+      supabaseUrl.indexOf("YOUR_PROJECT") < 0 &&
+      isValidHttpUrl(supabaseUrl)
+    );
+  }
+
   function isConfigured() {
     return configured;
   }
@@ -392,12 +422,15 @@
     starterCategoryById = options.starterCategoryById || {};
     starterRepsVersion = options.starterRepsVersion || 1;
 
-    var config = global.APP_CONFIG || {};
-    if (!config.supabaseUrl || !config.supabaseAnonKey || config.supabaseUrl.indexOf("YOUR_PROJECT") >= 0) {
+    if (!hasConfig()) {
       configured = false;
       if (callbacks.onAuthStateChange) callbacks.onAuthStateChange(null, null);
       return Promise.resolve(false);
     }
+
+    var config = global.APP_CONFIG || {};
+    var supabaseUrl = normalizeSupabaseUrl(config.supabaseUrl);
+    var supabaseAnonKey = String(config.supabaseAnonKey || "").trim();
 
     if (!global.supabase) {
       console.warn("Supabase JS not loaded");
@@ -405,7 +438,14 @@
       return Promise.resolve(false);
     }
 
-    client = global.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+    try {
+      client = global.supabase.createClient(supabaseUrl, supabaseAnonKey);
+    } catch (err) {
+      console.error("Supabase client init failed", err);
+      configured = false;
+      if (callbacks.onAuthStateChange) callbacks.onAuthStateChange(null, null);
+      return Promise.resolve(false);
+    }
     configured = true;
 
     client.auth.onAuthStateChange(function (_event, session) {
@@ -425,6 +465,7 @@
 
   global.SocialRepsCloud = {
     init: init,
+    hasConfig: hasConfig,
     isConfigured: isConfigured,
     isReady: isReady,
     getUser: getUser,

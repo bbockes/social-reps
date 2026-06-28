@@ -29,12 +29,12 @@ Sign in to save your profile, custom reps, routes, and daily progress across dev
 ### 2. Configure the app
 
 ```bash
-cp config.example.js config.js
+cp config.example.js config.local.js
 ```
 
-Edit `config.js` with your Supabase URL and anon key.
+Edit `config.local.js` with your Supabase URL and anon key.
 
-`config.js` is gitignored — do not commit it.
+`config.local.js` is gitignored — do not commit it. Do not use a placeholder `config.js`; it used to load after `app-config.js` and could wipe valid settings.
 
 ### 3. Run and sign up
 
@@ -53,7 +53,7 @@ For cloud sync on Pages, add two secrets on the **github-pages** environment (Se
 
 The deploy workflow writes these into `app-config.js` at build time. After pushing to `main` or re-running **Deploy GitHub Pages**, check `https://<user>.github.io/social-reps/app-config.js` — it should be valid JavaScript with your URL and key.
 
-Locally, gitignored `config.js` still overrides `app-config.js` if present.
+Locally, gitignored `config.local.js` overrides `app-config.js` when present.
 
 ## Files
 
