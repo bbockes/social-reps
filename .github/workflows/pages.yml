@@ -26,39 +26,7 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-        run: |
-          if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_ANON_KEY" ]; then
-            node <<'NODE'
-            const fs = require("fs");
-
-            function clean(value, field) {
-              let v = String(value || "").trim();
-              v = v.replace(new RegExp("^" + field + ":\\s*", "i"), "");
-              v = v.replace(/^["']|["']$/g, "");
-              return v.trim();
-            }
-
-            const config = {
-              supabaseUrl: clean(process.env.SUPABASE_URL, "supabaseUrl"),
-              supabaseAnonKey: clean(process.env.SUPABASE_ANON_KEY, "supabaseAnonKey")
-            };
-
-            if (!config.supabaseUrl || !config.supabaseAnonKey) {
-              console.error("Supabase secrets are empty after cleanup.");
-              process.exit(1);
-            }
-
-            fs.writeFileSync(
-              "config.js",
-              "window.APP_CONFIG = " + JSON.stringify(config, null, 2) + ";\n"
-            );
-            console.log("Wrote config.js for", config.supabaseUrl);
-            NODE
-          else
-            cp config.example.js config.js
-          fi
-      - name: Verify config.js
-        run: node -e "const fs=require('fs'); const src=fs.readFileSync('config.js','utf8'); if (!/supabaseUrl/.test(src) || /YOUR_PROJECT/.test(src)) { throw new Error('config.js missing valid Supabase settings'); }"
+        run: node scripts/generate-config.js
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
