@@ -2820,15 +2820,12 @@
           : isRepDone(routeIdx, i);
         var card = document.createElement("div");
         card.className = "stop-card" + (isDone ? " done" : "");
-        var preview = stopPreviewText(stop);
         card.innerHTML =
           '<div class="stop-check"><span class="stop-num-inner">' +
           (i + 1) +
           "</span></div>" +
           '<div><div class="stop-label">' +
           escapeHtml(stop.label) +
-          '</div><div class="stop-preview">' +
-          escapeHtml(preview) +
           '</div></div><span class="stop-chevron">›</span>';
         card.onclick = (function(idx) { return function() { showDetail(idx); }; })(i);
         list.appendChild(card);
@@ -3111,19 +3108,6 @@
       const d = document.createElement("div");
       d.textContent = s;
       return d.innerHTML;
-    }
-
-    function openerFirstLine(opener) {
-      if (!opener) return "";
-      let line = opener.split("\n")[0].trim();
-      const end = line.search(/[.?!]/);
-      if (end !== -1) line = line.slice(0, end + 1);
-      return line;
-    }
-
-    function stopPreviewText(stop) {
-      if (stop.openers?.length) return stop.openers[0];
-      return openerFirstLine(stop.opener);
     }
 
     function formatScriptOptions(items) {
@@ -3453,8 +3437,7 @@
         row.dataset.stopId = sid;
         row.innerHTML =
           '<span class="drag-handle" title="Drag to reorder" aria-hidden="true">≡</span>' +
-          '<div style="flex:1;min-width:0"><div class="route-stop-label">' + escapeHtml(stop.label) + '</div>' +
-          '<div class="route-stop-preview">' + escapeHtml(stop.openers[0] || "") + '</div></div>' +
+          '<div style="flex:1;min-width:0"><div class="route-stop-label">' + escapeHtml(stop.label) + '</div></div>' +
           '<button type="button" class="line-remove-btn" aria-label="Remove stop">&#215;</button>';
         row.querySelector(".line-remove-btn").onclick = (function(id) {
           return function() { removeStopFromRoute(id); };
@@ -3544,8 +3527,7 @@
         var item = document.createElement("div");
         item.className = "stop-picker-item" + (alreadyAdded ? " already-added" : "");
         item.innerHTML =
-          '<div style="min-width:0"><div class="stop-picker-item-label">' + escapeHtml(stop.label) + '</div>' +
-          '<div class="stop-picker-item-preview">' + escapeHtml(stop.openers[0] || "No openers") + '</div></div>' +
+          '<div style="min-width:0"><div class="stop-picker-item-label">' + escapeHtml(stop.label) + '</div></div>' +
           '<span class="stop-picker-add-icon">+</span>';
         if (!alreadyAdded) {
           item.onclick = (function(sid) { return function() { addStopToRoute(sid); }; })(stop.id);
