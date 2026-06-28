@@ -30,13 +30,17 @@ const url = normalizeSupabaseUrl(process.env.SUPABASE_URL);
 const key = normalizeAnonKey(process.env.SUPABASE_ANON_KEY);
 const outPath = path.join(__dirname, "..", "app-config.js");
 
-if (url && key && url.indexOf("YOUR_PROJECT") < 0) {
-  const config = { supabaseUrl: url, supabaseAnonKey: key };
-  fs.writeFileSync(outPath, "window.APP_CONFIG = " + JSON.stringify(config, null, 2) + ";\n");
-  console.log("Wrote app-config.js for", url);
-  process.exit(0);
+if (!url || !key) {
+  console.error("Missing SUPABASE_URL or SUPABASE_ANON_KEY.");
+  console.error("Add them as repository secrets or on the github-pages environment, then redeploy.");
+  process.exit(1);
 }
 
-fs.copyFileSync(path.join(__dirname, "..", "config.example.js"), outPath);
-console.log("No Supabase secrets set — using placeholder app-config.js (offline mode)");
-process.exit(0);
+if (url.indexOf("YOUR_PROJECT") >= 0) {
+  console.error("SUPABASE_URL still contains YOUR_PROJECT placeholder.");
+  process.exit(1);
+}
+
+const config = { supabaseUrl: url, supabaseAnonKey: key };
+fs.writeFileSync(outPath, "window.APP_CONFIG = " + JSON.stringify(config, null, 2) + ";\n");
+console.log("Wrote app-config.js for", url);

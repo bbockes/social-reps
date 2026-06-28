@@ -26,7 +26,19 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-        run: node scripts/generate-config.js
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::error::SUPABASE_URL and SUPABASE_ANON_KEY are not set for this workflow."
+            echo "Add them under Settings → Secrets and variables → Actions,"
+            echo "or under Settings → Environments → github-pages → Environment secrets."
+            exit 1
+          fi
+          node scripts/generate-config.js
+          if grep -q "YOUR_PROJECT" app-config.js; then
+            echo "::error::app-config.js was not generated with real Supabase values."
+            exit 1
+          fi
+          echo "Generated app-config.js for deploy."
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -46,12 +46,17 @@ On first sign-in, any reps/routes already in your browser are copied to your acc
 
 Push to `main`. With Pages enabled (GitHub Actions workflow in this repo), the app is served from `index.html` at your repo's Pages URL.
 
-For cloud sync on Pages, add two secrets on the **github-pages** environment (Settings → Environments → github-pages → Environment secrets):
+For cloud sync on Pages, add two secrets (either location works):
+
+- **Settings → Secrets and variables → Actions → Repository secrets**, or
+- **Settings → Environments → github-pages → Environment secrets**
+
+Secret names (exact):
 
 - `SUPABASE_URL` — just the URL, e.g. `https://xxxx.supabase.co`
-- `SUPABASE_ANON_KEY` — just the key string, e.g. `eyJ...` or `sb_publishable_...` (do **not** paste the whole `supabaseAnonKey: "..."` line from `config.js`)
+- `SUPABASE_ANON_KEY` — just the key string, e.g. `eyJ...` or `sb_publishable_...` (do **not** paste the whole `supabaseAnonKey: "..."` line from `config.local.js`)
 
-The deploy workflow writes these into `app-config.js` at build time. After pushing to `main` or re-running **Deploy GitHub Pages**, check `https://<user>.github.io/social-reps/app-config.js` — it should be valid JavaScript with your URL and key.
+The deploy workflow writes these into `app-config.js` at build time. If secrets are missing, the deploy **fails** instead of publishing placeholders. After adding secrets, re-run **Deploy GitHub Pages** (Actions tab → workflow → Run workflow) or push to `main`. Then check `https://<user>.github.io/social-reps/app-config.js` — it should be JSON with your URL and key, not `YOUR_PROJECT`.
 
 Locally, gitignored `config.local.js` overrides `app-config.js` when present.
 
