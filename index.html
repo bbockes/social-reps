@@ -1240,37 +1240,74 @@
     .ios-destructive-row:active { background: var(--bg-subtle); }
 
     #route-editor-screen .tab-bar {
-      margin: 0.65rem 0.75rem 0;
+      margin: 0;
       background: var(--surface-inset);
     }
 
-    #route-editor-screen .route-stops-sortable { padding: 0; min-height: 0; }
-
-    #route-editor-screen .route-stop-row {
-      padding: 0.75rem 1rem;
-      border-bottom: 1px solid var(--border);
-      background: transparent;
+    #route-editor-screen .ios-group-tabs {
+      padding: 0.65rem 0.75rem;
     }
 
+    #route-editor-screen .ios-group-list {
+      margin-top: 0.85rem;
+    }
+
+    #route-editor-screen .route-stops-sortable,
     #route-editor-screen .stop-picker {
       padding: 0;
+      gap: 0;
     }
 
+    #route-editor-screen .route-stop-row,
     #route-editor-screen .stop-picker-item {
       border: none;
       border-radius: 0;
+      box-shadow: none;
       background: transparent;
       border-bottom: 1px solid var(--border);
-      padding: 0.75rem 1rem;
+      min-height: 64px;
+      padding: 1.35rem 1rem;
     }
-    #route-editor-screen .stop-picker-item:last-child { border-bottom: none; }
-    #route-editor-screen .stop-picker-item:active { background: rgba(0, 0, 0, 0.04); }
+
+    #route-editor-screen .route-stop-row:last-child,
+    #route-editor-screen .stop-picker-item:last-child {
+      border-bottom: none;
+    }
+
+    #route-editor-screen .stop-picker-item:active,
+    #route-editor-screen .route-stop-row:active {
+      background: rgba(0, 0, 0, 0.04);
+      transform: none;
+    }
+
+    #route-editor-screen .stop-picker-add-icon {
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: -0.65rem -0.5rem -0.65rem 0;
+    }
+
+    #route-editor-screen .route-stop-row .line-remove-btn {
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: -0.65rem -0.35rem -0.65rem 0;
+    }
 
     #route-editor-screen .stop-picker-item.picker-back-row {
-      border-bottom: 1px solid var(--border);
       cursor: pointer;
     }
-    #route-editor-screen .stop-picker-item.picker-back-row:active { background: rgba(0, 0, 0, 0.04); }
+
+    #route-editor-screen .rep-empty-card {
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      background: transparent;
+    }
 
     /* —— Editor screens (stop editor, route editor) —— */
     .editor-body {
@@ -1382,17 +1419,20 @@
     .line-remove-btn:active { color: var(--accent); }
 
     /* —— Route editor stops list —— */
-    .route-stops-sortable { padding: 0.35rem 0; min-height: 4px; }
+    .route-stops-sortable {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      min-height: 0;
+    }
 
     .route-stop-row {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 0.65rem 1rem;
-      border-bottom: 1px solid var(--border);
-      background: var(--card);
+      min-height: 64px;
+      padding: 1.35rem 1rem;
     }
-    .route-stop-row:last-child { border-bottom: none; }
 
     .drag-handle {
       color: var(--placeholder);
@@ -1407,7 +1447,7 @@
 
     .route-stop-label {
       flex: 1;
-      font-size: 0.93rem;
+      font-size: 1rem;
       font-weight: 600;
       color: var(--text);
     }
@@ -1420,28 +1460,26 @@
 
     /* —— Stop picker —— */
     .stop-picker {
-      padding: 0.75rem 1rem;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 0;
+      padding: 0;
     }
 
     .stop-picker-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0.65rem 0.85rem;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--bg);
+      min-height: 64px;
+      padding: 1.35rem 1rem;
       cursor: pointer;
-      transition: background 0.15s;
+      transition: background 0.15s ease;
     }
     .stop-picker-item:active { background: var(--accent-soft); }
     .stop-picker-item.already-added { opacity: 0.38; pointer-events: none; }
 
     .stop-picker-item-label {
-      font-size: 0.9rem;
+      font-size: 1rem;
       font-weight: 600;
       color: var(--text);
     }
@@ -2011,11 +2049,13 @@
         </div>
         <div class="ios-section">
           <div class="ios-section-label">Add Reps</div>
-          <div class="ios-group">
+          <div class="ios-group ios-group-tabs">
             <div class="tab-bar">
               <button type="button" class="tab-btn active" id="picker-tab-library">Library</button>
               <button type="button" class="tab-btn" id="picker-tab-custom">Custom</button>
             </div>
+          </div>
+          <div class="ios-group ios-group-list">
             <div id="stop-picker" class="stop-picker"></div>
             <div id="stop-picker-empty" class="ios-empty-hint hidden">
               No custom reps yet —
